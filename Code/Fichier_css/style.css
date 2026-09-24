@@ -1,3 +1,144 @@
+* {
+	box-sizing: border-box;
+}
+
+body {
+	margin: 0;
+	font-family: Arial, sans-serif;
+	background: #f2f2f2;
+}
+
+.conversation {
+	display: flex;
+	flex-direction: column;
+	width: 100%;
+	max-width: 700px;
+	height: 100vh;
+	margin: 0 auto;
+	background: white;
+}
+
+.conversation__header,
+.conversation__contact {
+	display: flex;
+	align-items: center;
+	}
+
+.conversation__header {
+	gap: 12px;
+	padding: 15px;
+	border-bottom: 1px solid #ddd;
+}
+
+.conversation__back {
+	color: #333;
+	font-size: 24px;
+	text-decoration: none;
+}
+
+.conversation__contact {
+	gap: 10px;
+}
+
+.conversation__avatar {
+	display: grid;
+	width: 40px;
+	height: 40px;
+	place-items: center;
+	border-radius: 50%;
+	background: #ddd;
+}
+
+.conversation__header h1,
+.conversation__header p,
+.message__content {
+	margin: 0;
+}
+
+.conversation__header h1 {
+	font-size: 16px;
+}
+
+.conversation__header p {
+	margin-top: 4px;
+	color: #777;
+	font-size: 13px;
+}
+
+.conversation__messages {
+	display: flex;
+	flex: 1;
+	flex-direction: column;
+	gap: 10px;
+	padding: 15px;
+	overflow-y: auto;
+}
+
+.message {
+	max-width: 75%;
+	padding: 10px;
+	border-radius: 8px;
+}
+
+.message--received {
+	align-self: flex-start;
+	background: #eee;
+}
+
+.message--sent {
+	align-self: flex-end;
+	background: #d7ebf8;
+}
+
+.message__content {
+	word-break: break-word;
+}
+
+.message__time {
+	display: block;
+	margin-top: 5px;
+	color: #777;
+	font-size: 11px;
+	text-align: right;
+}
+
+.conversation__composer {
+	display: flex;
+	gap: 8px;
+	padding: 12px 15px;
+	border-top: 1px solid #ddd;
+}
+
+.conversation__composer input {
+	min-width: 0;
+	flex: 1;
+	padding: 10px;
+	border: 1px solid #ccc;
+	border-radius: 5px;
+}
+
+.conversation__composer button {
+	width: 42px;
+	border: 0;
+	border-radius: 5px;
+	background: #2879a8;
+	color: white;
+	cursor: pointer;
+}
+
+@media (max-width: 480px) {
+	.message {
+		max-width: 90%;
+	}
+
+	.conversation__header,
+	.conversation__messages,
+	.conversation__composer {
+		padding-right: 10px;
+		padding-left: 10px;
+	}
+}
+
 body{
         background-color: #E7E6E6;
         display: flex;

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="stylesheet" href="../Fichier_css/style.css">
+	<title>Conversation</title>
+</head>
+<body>
+	<main id="conversation" class="conversation" data-conversation-id="">
+		<header class="conversation__header">
+			<a id="back" class="conversation__back" href="index.html" aria-label="Retour aux conversations">&#8592;</a>
+
+			<div class="conversation__contact">
+				<div id="contact-avatar" class="conversation__avatar" aria-hidden="true">?</div>
+				<div>
+					<h1 id="contact-name">Nom du contact</h1>
+					<p id="contact-status">Hors ligne</p>
+				</div>
+			</div>
+
+		</header>
+
+		<section id="messages" class="conversation__messages" aria-live="polite" aria-label="Messages">
+		</section>
+
+		<form id="message-form" class="conversation__composer">
+			<input id="message-input" name="message" type="text" placeholder="Écrire un message..." autocomplete="off">
+			<button id="send-message" type="submit" aria-label="Envoyer le message">&#10148;</button>
+		</form>
+	</main>
+</body>
+</html>
