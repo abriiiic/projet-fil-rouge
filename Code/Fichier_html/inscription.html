@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../Fichier_css/connexion.css">
+    <title>Créer un compte</title>
+</head>
+<body class="connexion-page">
+    <div id="boite">
+        <form id="InscriptionForm" action="#" method="post">
+            <h2>Créer un compte</h2>
+
+            <label for="username">Pseudo :</label>
+            <input type="text" id="username" name="username" placeholder="Choisissez un pseudo" required>
+
+            <label for="signup-email">Adresse mail :</label>
+            <input type="email" id="signup-email" name="email" placeholder="Entrez votre adresse mail" required>
+
+            <label for="signup-password">Mot de passe :</label>
+            <input type="password" id="signup-password" name="password" placeholder="Choisissez un mot de passe" required>
+
+            <label for="password-confirmation">Confirmer le mot de passe :</label>
+            <input type="password" id="password-confirmation" name="password-confirmation" placeholder="Répétez votre mot de passe" required>
+
+            <button type="submit">Créer mon compte</button>
+            <a class="back-to-login" href="connexion.html">Retour à la connexion</a>
+        </form>
+    </div>
+
+        <script src="../Fichier_js/inscription.js" defer></script>
+		<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    	<script src="../Fichier_js/supabase-config.js"></script>
+</body>
+</html>

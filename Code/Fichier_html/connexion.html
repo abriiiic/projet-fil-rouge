@@ -1,20 +1,20 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../Fichier_css/connexion.css">
-    <title>Document</title>
+    <title>Connexion à la messagerie</title>
 </head>
 <body class="connexion-page">
 <div id="boite">
-        <form id="login-form" action="conversation.html" method="get">
-                <h2 style="text-decoration-line: underline;">Connexion à la messagerie</h2>
-                <label>Adresse mail :</label>
-                <input type="text" name="email" placeholder="Entrez votre adresse mail"><br>
+        <form id="login-form">
+                <h2>Connexion à la messagerie</h2>
+                <label for="email">Adresse mail :</label>
+                <input type="email" id="email" name="email" placeholder="Entrez votre adresse mail">
 
-                <label>Mot de passe :</label>
-                <input type="password" name="password" placeholder="Entrez votre mot de passe"><br>
+                <label for="password">Mot de passe :</label>
+                <input type="password" id="password" name="password" placeholder="Entrez votre mot de passe">
 
                 <div class="remember-option">
                     <input type="checkbox" id="remember" name="remember">
@@ -24,11 +24,14 @@
                 <a class="forgot-password" href="mot-de-passe-oublie.html">Mot de passe oublié ?</a>
   
                 <button type="submit">Se connecter</button>
+                <a class="create-account" href="inscription.html">Créer un compte</a>
             </form>
 
 </div>
 
     
-    <script src="../Fichier_js/index.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../Fichier_js/supabase-config.js"></script>
+    <script src="../Fichier_js/connexion.js" defer></script>
 </body>
 </html>
