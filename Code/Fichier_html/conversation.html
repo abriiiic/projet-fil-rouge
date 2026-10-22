@@ -7,28 +7,36 @@
 	<title>Conversation</title>
 </head>
 <body>
-	<main id="conversation" class="conversation" data-conversation-id="">
-		<header class="conversation__header">
-			<a id="back" class="conversation__back" href="index.html" aria-label="Retour aux conversations">&#8592;</a>
+	<div class="app">
+		<aside class="sidebar">
+			<header class="sidebar__header">
+				<div id="mon-avatar" class="conversation__avatar" aria-hidden="true">?</div>
+				<h2 id="mon-pseudo">Chargement...</h2>
+			</header>
 
-			<div class="conversation__contact">
-				<div id="contact-avatar" class="conversation__avatar" aria-hidden="true">?</div>
-				<div>
-					<h1 id="contact-name">Nom du contact</h1>
-					<p id="contact-status">Hors ligne</p>
+			<ul id="liste-conversations" class="sidebar__liste"></ul>
+		</aside>
+
+		<main id="conversation" class="conversation" data-conversation-id="">
+			<header class="conversation__header">
+				<div class="conversation__contact">
+					<div id="contact-avatar" class="conversation__avatar" aria-hidden="true">?</div>
+					<div>
+						<h1 id="contact-name">Choisissez une conversation</h1>
+					</div>
 				</div>
-			</div>
+			</header>
 
-		</header>
+			<section id="messages" class="conversation__messages" aria-live="polite" aria-label="Messages">
+			</section>
 
-		<section id="messages" class="conversation__messages" aria-live="polite" aria-label="Messages">
-		</section>
+			<form id="message-form" class="conversation__composer">
+				<input id="message-input" name="message" type="text" placeholder="Écrire un message..." autocomplete="off">
+				<button id="send-message" type="submit" aria-label="Envoyer le message">&#10148;</button>
+			</form>
+		</main>
+	</div>
 
-		<form id="message-form" class="conversation__composer">
-			<input id="message-input" name="message" type="text" placeholder="Écrire un message..." autocomplete="off">
-			<button id="send-message" type="submit" aria-label="Envoyer le message">&#10148;</button>
-		</form>
-	</main>
 	<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 	<script src="../Fichier_js/supabase-config.js"></script>
 	<script src="../Fichier_js/conversation.js" defer></script>
