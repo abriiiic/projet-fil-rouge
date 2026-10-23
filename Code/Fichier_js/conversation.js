@@ -10,6 +10,8 @@ const contactNameElement = document.getElementById('contact-name');
 const contactAvatarElement = document.getElementById('contact-avatar');
 const messagesElement = document.getElementById('messages');
 const messageForm = document.getElementById('message-form');
+const messageInput = document.getElementById('message-input');
+const boutonEnvoyer = document.getElementById('send-message');
 
 
 function initiale(pseudo) {
@@ -128,27 +130,62 @@ async function ouvrirConversation(conversationId, pseudo, bouton) {
     }
 
     messagesElement.innerHTML = '';
-
-    messages.forEach(message => {
-        if (!message.contenu) return;
-
-        const div = document.createElement('div');
-        div.className = message.auteur_id === monId ? 'message message--sent' : 'message message--received';
-
-        const p = document.createElement('p');
-        p.className = 'message__content';
-        p.textContent = message.contenu;
-
-        div.appendChild(p);
-        messagesElement.appendChild(div);
-    });
-
+    messages.forEach(afficherMessage);
     messagesElement.scrollTop = messagesElement.scrollHeight;
 }
 
 
-messageForm.addEventListener('submit', (event) => {
+function afficherMessage(message) {
+    if (!message.contenu) return;
+    if (messagesElement.querySelector(`[data-id="${message.id}"]`)) return;
+
+    const div = document.createElement('div');
+    div.dataset.id = message.id;
+    div.className = message.auteur_id === monId ? 'message message--sent' : 'message message--received';
+
+    const p = document.createElement('p');
+    p.className = 'message__content';
+    p.textContent = message.contenu;
+
+    div.appendChild(p);
+    messagesElement.appendChild(div);
+}
+
+
+messageForm.addEventListener('submit', async (event) => {
     event.preventDefault();
+
+    const conversationId = conversationElement.dataset.conversationId;
+    const contenu = messageInput.value.trim();
+
+    if (!conversationId || !contenu) return;
+
+    boutonEnvoyer.disabled = true;
+
+    const { data: message, error } = await client
+        .from('message')
+        .insert({
+            conversation_id: Number(conversationId),
+            auteur_id: monId,
+            contenu: contenu
+        })
+        .select('id, auteur_id, contenu')
+        .single();
+
+    boutonEnvoyer.disabled = false;
+
+    if (error) {
+        console.error("Erreur envoi :", error.message);
+        alert("Le message n'a pas pu être envoyé.");
+        return;
+    }
+
+    if (messageInput.value.trim() === contenu) messageInput.value = '';
+
+    if (conversationElement.dataset.conversationId !== conversationId) return;
+
+    afficherMessage(message);
+    messagesElement.scrollTop = messagesElement.scrollHeight;
 });
 
 demarrer();
