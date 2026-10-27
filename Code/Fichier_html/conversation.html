@@ -20,12 +20,10 @@
 
 		<main id="conversation" class="conversation" data-conversation-id="">
 			<header class="conversation__header">
-				<div class="conversation__contact">
-					<div id="contact-avatar" class="conversation__avatar" aria-hidden="true">?</div>
-					<div>
-						<h1 id="contact-name">Choisissez une conversation</h1>
-					</div>
-				</div>
+				<button id="contact-bouton" class="conversation__contact" type="button" title="Voir le profil" disabled>
+					<span id="contact-avatar" class="conversation__avatar" aria-hidden="true">?</span>
+					<span id="contact-name" class="conversation__nom">Choisissez une conversation</span>
+				</button>
 			</header>
 
 			<section id="messages" class="conversation__messages" aria-live="polite" aria-label="Messages">
@@ -37,6 +35,20 @@
 			</form>
 		</main>
 	</div>
+
+	<dialog id="profil-dialog" class="profil-modal" aria-labelledby="profil-pseudo">
+		<div class="profil-modal__banniere">
+			<img id="profil-banniere" alt="" hidden>
+		</div>
+		<button id="profil-fermer" class="profil-modal__fermer" type="button" aria-label="Fermer">&times;</button>
+
+		<div class="profil-modal__haut">
+			<span id="profil-avatar" class="profil-modal__avatar" aria-hidden="true">?</span>
+			<h2 id="profil-pseudo"></h2>
+		</div>
+
+		<p id="profil-bio" class="profil-modal__bio"></p>
+	</dialog>
 
 	<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 	<script src="../Fichier_js/supabase-config.js"></script>

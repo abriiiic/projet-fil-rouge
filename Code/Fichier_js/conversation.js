@@ -11,6 +11,15 @@ const listeConversations = document.getElementById('liste-conversations');
 const conversationElement = document.getElementById('conversation');
 const contactNameElement = document.getElementById('contact-name');
 const contactAvatarElement = document.getElementById('contact-avatar');
+const contactBouton = document.getElementById('contact-bouton');
+const profilDialog = document.getElementById('profil-dialog');
+const profilBanniere = document.getElementById('profil-banniere');
+const profilAvatar = document.getElementById('profil-avatar');
+const profilPseudo = document.getElementById('profil-pseudo');
+const profilBio = document.getElementById('profil-bio');
+const profilFermer = document.getElementById('profil-fermer');
+
+let contactActuel = null;
 const messagesElement = document.getElementById('messages');
 const messageForm = document.getElementById('message-form');
 const messageInput = document.getElementById('message-input');
@@ -110,8 +119,7 @@ async function chargerConversations() {
 
     conversations.forEach(conversation => {
         const autre = membres.find(m => m.id === autreId(conversation));
-        const pseudo = autre ? autre.pseudo : 'Inconnu';
-        const photoUrl = autre ? autre.photo_url : null;
+        const contact = autre || { id: autreId(conversation), pseudo: 'Inconnu', photo_url: null };
 
         const li = document.createElement('li');
         const bouton = document.createElement('button');
@@ -120,14 +128,14 @@ async function chargerConversations() {
 
         const avatar = document.createElement('span');
         avatar.className = 'conversation__avatar';
-        afficherAvatar(avatar, pseudo, photoUrl);
+        afficherAvatar(avatar, contact.pseudo, contact.photo_url);
 
         const nom = document.createElement('span');
-        nom.textContent = pseudo;
+        nom.textContent = contact.pseudo;
 
         bouton.appendChild(avatar);
         bouton.appendChild(nom);
-        bouton.addEventListener('click', () => ouvrirConversation(conversation.id, pseudo, photoUrl, bouton));
+        bouton.addEventListener('click', () => ouvrirConversation(conversation.id, contact, bouton));
 
         li.appendChild(bouton);
         listeConversations.appendChild(li);
@@ -135,7 +143,7 @@ async function chargerConversations() {
 }
 
 
-async function ouvrirConversation(conversationId, pseudo, photoUrl, bouton) {
+async function ouvrirConversation(conversationId, contact, bouton) {
     document.querySelectorAll('.sidebar__conversation').forEach(b => {
         b.classList.remove('active');
         b.removeAttribute('aria-current');
@@ -145,8 +153,10 @@ async function ouvrirConversation(conversationId, pseudo, photoUrl, bouton) {
 
     fermerPicker();
     conversationElement.dataset.conversationId = conversationId;
-    contactNameElement.textContent = pseudo;
-    afficherAvatar(contactAvatarElement, pseudo, photoUrl);
+    contactActuel = contact;
+    contactBouton.disabled = !contact.id;
+    contactNameElement.textContent = contact.pseudo;
+    afficherAvatar(contactAvatarElement, contact.pseudo, contact.photo_url);
     messagesElement.innerHTML = '';
 
     const { data: messages, error } = await client
@@ -281,6 +291,54 @@ document.addEventListener('keydown', (event) => {
 });
 
 messagesElement.addEventListener('scroll', fermerPicker);
+
+
+async function ouvrirProfil() {
+    if (!contactActuel || !contactActuel.id) return;
+
+    const contact = contactActuel;
+
+    profilPseudo.textContent = contact.pseudo;
+    afficherAvatar(profilAvatar, contact.pseudo, contact.photo_url);
+    profilBanniere.hidden = true;
+    profilBio.textContent = "Chargement...";
+    profilBio.classList.add('profil-modal__bio--vide');
+    profilDialog.showModal();
+
+    const { data, error } = await client
+        .from('membre')
+        .select('pseudo, bio, photo_url, banniere_url')
+        .eq('id', contact.id)
+        .single();
+
+    if (contactActuel !== contact) return;
+
+    if (error) {
+        console.error("Erreur profil :", error.message);
+        profilBio.textContent = "Impossible de charger le profil.";
+        return;
+    }
+
+    profilPseudo.textContent = data.pseudo;
+    afficherAvatar(profilAvatar, data.pseudo, data.photo_url);
+
+    if (data.banniere_url) {
+        profilBanniere.src = data.banniere_url;
+        profilBanniere.hidden = false;
+    }
+
+    profilBio.textContent = data.bio || "Pas encore de bio.";
+    profilBio.classList.toggle('profil-modal__bio--vide', !data.bio);
+}
+
+
+contactBouton.addEventListener('click', ouvrirProfil);
+
+profilFermer.addEventListener('click', () => profilDialog.close());
+
+profilDialog.addEventListener('click', (event) => {
+    if (event.target === profilDialog) profilDialog.close();
+});
 window.addEventListener('resize', fermerPicker);
 
 
