@@ -28,6 +28,20 @@ function initiale(pseudo) {
 }
 
 
+function afficherAvatar(element, pseudo, photoUrl) {
+    element.innerHTML = '';
+
+    if (photoUrl) {
+        const img = document.createElement('img');
+        img.src = photoUrl;
+        img.alt = '';
+        element.appendChild(img);
+    } else {
+        element.textContent = initiale(pseudo);
+    }
+}
+
+
 async function demarrer() {
     const { data: { user } } = await client.auth.getUser();
 
@@ -45,7 +59,7 @@ async function demarrer() {
 async function chargerMonPseudo() {
     const { data, error } = await client
         .from('membre')
-        .select('pseudo')
+        .select('pseudo, photo_url')
         .eq('id', monId)
         .single();
 
@@ -56,7 +70,7 @@ async function chargerMonPseudo() {
     }
 
     monPseudoElement.textContent = data.pseudo;
-    monAvatarElement.textContent = initiale(data.pseudo);
+    afficherAvatar(monAvatarElement, data.pseudo, data.photo_url);
 }
 
 
@@ -83,7 +97,7 @@ async function chargerConversations() {
 
     const { data: membres, error: erreurMembres } = await client
         .from('membre')
-        .select('id, pseudo')
+        .select('id, pseudo, photo_url')
         .in('id', conversations.map(autreId).filter(id => id));
 
     if (erreurMembres) {
@@ -97,13 +111,23 @@ async function chargerConversations() {
     conversations.forEach(conversation => {
         const autre = membres.find(m => m.id === autreId(conversation));
         const pseudo = autre ? autre.pseudo : 'Inconnu';
+        const photoUrl = autre ? autre.photo_url : null;
 
         const li = document.createElement('li');
         const bouton = document.createElement('button');
         bouton.type = 'button';
         bouton.className = 'sidebar__conversation';
-        bouton.textContent = pseudo;
-        bouton.addEventListener('click', () => ouvrirConversation(conversation.id, pseudo, bouton));
+
+        const avatar = document.createElement('span');
+        avatar.className = 'conversation__avatar';
+        afficherAvatar(avatar, pseudo, photoUrl);
+
+        const nom = document.createElement('span');
+        nom.textContent = pseudo;
+
+        bouton.appendChild(avatar);
+        bouton.appendChild(nom);
+        bouton.addEventListener('click', () => ouvrirConversation(conversation.id, pseudo, photoUrl, bouton));
 
         li.appendChild(bouton);
         listeConversations.appendChild(li);
@@ -111,7 +135,7 @@ async function chargerConversations() {
 }
 
 
-async function ouvrirConversation(conversationId, pseudo, bouton) {
+async function ouvrirConversation(conversationId, pseudo, photoUrl, bouton) {
     document.querySelectorAll('.sidebar__conversation').forEach(b => {
         b.classList.remove('active');
         b.removeAttribute('aria-current');
@@ -122,7 +146,7 @@ async function ouvrirConversation(conversationId, pseudo, bouton) {
     fermerPicker();
     conversationElement.dataset.conversationId = conversationId;
     contactNameElement.textContent = pseudo;
-    contactAvatarElement.textContent = initiale(pseudo);
+    afficherAvatar(contactAvatarElement, pseudo, photoUrl);
     messagesElement.innerHTML = '';
 
     const { data: messages, error } = await client

@@ -39,6 +39,17 @@ body {
 	font-size: 16px;
 }
 
+.sidebar__parametres {
+	margin-left: auto;
+	color: #555;
+	font-size: 22px;
+	text-decoration: none;
+}
+
+.sidebar__parametres:hover {
+	color: #2879a8;
+}
+
 .sidebar__header h2,
 .sidebar__conversation,
 .conversation__header h1 {
@@ -54,6 +65,9 @@ body {
 }
 
 .sidebar__conversation {
+	display: flex;
+	align-items: center;
+	gap: 10px;
 	width: 100%;
 	padding: 14px 15px;
 	border: 0;
@@ -114,7 +128,14 @@ body {
 	height: 40px;
 	place-items: center;
 	border-radius: 50%;
+	overflow: hidden;
 	background: #ddd;
+}
+
+.conversation__avatar img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
 }
 
 .conversation__header h1,
