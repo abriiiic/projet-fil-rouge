@@ -117,7 +117,7 @@ async function ouvrirConversation(conversationId, pseudo, bouton) {
 
     const { data: messages, error } = await client
         .from('message')
-        .select('id, auteur_id, contenu')
+        .select('id, auteur_id, contenu, date_envoi')
         .eq('conversation_id', conversationId)
         .order('id');
 
@@ -146,9 +146,28 @@ function afficherMessage(message) {
     const p = document.createElement('p');
     p.className = 'message__content';
     p.textContent = message.contenu;
-
     div.appendChild(p);
+
+    if (message.date_envoi) {
+        const heure = document.createElement('span');
+        heure.className = 'message__time';
+        heure.textContent = formaterHeure(message.date_envoi);
+        div.appendChild(heure);
+    }
+
     messagesElement.appendChild(div);
+}
+
+
+function formaterHeure(dateEnvoi) {
+    const date = new Date(dateEnvoi);
+    if (isNaN(date)) return '';
+
+    const heure = date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+
+    if (date.toDateString() === new Date().toDateString()) return heure;
+
+    return date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }) + ' ' + heure;
 }
 
 
@@ -169,7 +188,7 @@ messageForm.addEventListener('submit', async (event) => {
             auteur_id: monId,
             contenu: contenu
         })
-        .select('id, auteur_id, contenu')
+        .select('id, auteur_id, contenu, date_envoi')
         .single();
 
     boutonEnvoyer.disabled = false;
