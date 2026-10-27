@@ -2,6 +2,9 @@ const client = window.supabaseClient;
 
 let monId = null;
 
+const EMOJIS = ['👍', '❤️', '😂', '😮', '😢'];
+const reactionsParMessage = {};
+
 const monPseudoElement = document.getElementById('mon-pseudo');
 const monAvatarElement = document.getElementById('mon-avatar');
 const listeConversations = document.getElementById('liste-conversations');
@@ -12,6 +15,12 @@ const messagesElement = document.getElementById('messages');
 const messageForm = document.getElementById('message-form');
 const messageInput = document.getElementById('message-input');
 const boutonEnvoyer = document.getElementById('send-message');
+
+const picker = document.createElement('div');
+picker.className = 'picker';
+picker.hidden = true;
+document.body.appendChild(picker);
+let messageOuvert = null;
 
 
 function initiale(pseudo) {
@@ -110,6 +119,7 @@ async function ouvrirConversation(conversationId, pseudo, bouton) {
     bouton.classList.add('active');
     bouton.setAttribute('aria-current', 'true');
 
+    fermerPicker();
     conversationElement.dataset.conversationId = conversationId;
     contactNameElement.textContent = pseudo;
     contactAvatarElement.textContent = initiale(pseudo);
@@ -117,7 +127,7 @@ async function ouvrirConversation(conversationId, pseudo, bouton) {
 
     const { data: messages, error } = await client
         .from('message')
-        .select('id, auteur_id, contenu, date_envoi')
+        .select('id, auteur_id, contenu, date_envoi, reaction(membre_id, emoji)')
         .eq('conversation_id', conversationId)
         .order('id');
 
@@ -155,7 +165,125 @@ function afficherMessage(message) {
         div.appendChild(heure);
     }
 
+    const reactions = document.createElement('div');
+    reactions.className = 'message__reactions';
+    div.appendChild(reactions);
+
+    const plus = document.createElement('button');
+    plus.type = 'button';
+    plus.className = 'message__plus';
+    plus.textContent = '+';
+    plus.setAttribute('aria-label', 'Réagir au message');
+    plus.addEventListener('click', (event) => {
+        event.stopPropagation();
+        ouvrirPicker(message.id, div);
+    });
+    div.appendChild(plus);
+
+    reactionsParMessage[message.id] = message.reaction || [];
     messagesElement.appendChild(div);
+    afficherReactions(message.id);
+}
+
+
+function afficherReactions(messageId) {
+    const div = messagesElement.querySelector(`[data-id="${messageId}"]`);
+    if (!div) return;
+
+    const conteneur = div.querySelector('.message__reactions');
+    const reactions = reactionsParMessage[messageId];
+
+    const emojis = [];
+    reactions.forEach(r => {
+        if (!emojis.includes(r.emoji)) emojis.push(r.emoji);
+    });
+
+    conteneur.textContent = emojis.join('') + (reactions.length > 1 ? ' ' + reactions.length : '');
+    conteneur.hidden = reactions.length === 0;
+    div.classList.toggle('message--avec-reactions', reactions.length > 0);
+}
+
+
+function ouvrirPicker(messageId, bulle) {
+    if (messageOuvert === messageId) {
+        fermerPicker();
+        return;
+    }
+
+    const mienne = reactionsParMessage[messageId].find(r => r.membre_id === monId);
+    picker.innerHTML = '';
+
+    EMOJIS.forEach(emoji => {
+        const bouton = document.createElement('button');
+        bouton.type = 'button';
+        bouton.className = 'picker__emoji';
+        if (mienne && mienne.emoji === emoji) bouton.classList.add('picker__emoji--actif');
+        bouton.textContent = emoji;
+        bouton.addEventListener('click', () => {
+            fermerPicker();
+            reagir(messageId, emoji);
+        });
+        picker.appendChild(bouton);
+    });
+
+    picker.hidden = false;
+    messageOuvert = messageId;
+
+    const rect = bulle.getBoundingClientRect();
+
+    let top = rect.top - picker.offsetHeight - 8;
+    if (top < 8) top = rect.bottom + 8;
+
+    let left = bulle.classList.contains('message--sent') ? rect.right - picker.offsetWidth : rect.left;
+    left = Math.max(8, Math.min(left, window.innerWidth - picker.offsetWidth - 8));
+
+    picker.style.top = top + 'px';
+    picker.style.left = left + 'px';
+}
+
+
+function fermerPicker() {
+    picker.hidden = true;
+    messageOuvert = null;
+}
+
+
+document.addEventListener('click', (event) => {
+    if (!picker.contains(event.target)) fermerPicker();
+});
+
+document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') fermerPicker();
+});
+
+messagesElement.addEventListener('scroll', fermerPicker);
+window.addEventListener('resize', fermerPicker);
+
+
+async function reagir(messageId, emoji) {
+    const mienne = reactionsParMessage[messageId].find(r => r.membre_id === monId);
+    const retirer = mienne && mienne.emoji === emoji;
+
+    const { error } = retirer
+        ? await client
+            .from('reaction')
+            .delete()
+            .eq('message_id', messageId)
+            .eq('membre_id', monId)
+        : await client
+            .from('reaction')
+            .upsert({ message_id: messageId, membre_id: monId, emoji: emoji });
+
+    if (error) {
+        console.error("Erreur réaction :", error.message);
+        alert("La réaction n'a pas pu être enregistrée.");
+        return;
+    }
+
+    const autres = reactionsParMessage[messageId].filter(r => r.membre_id !== monId);
+    reactionsParMessage[messageId] = retirer ? autres : autres.concat({ membre_id: monId, emoji: emoji });
+
+    afficherReactions(messageId);
 }
 
 
@@ -188,7 +316,7 @@ messageForm.addEventListener('submit', async (event) => {
             auteur_id: monId,
             contenu: contenu
         })
-        .select('id, auteur_id, contenu, date_envoi')
+        .select('id, auteur_id, contenu, date_envoi, reaction(membre_id, emoji)')
         .single();
 
     boutonEnvoyer.disabled = false;
