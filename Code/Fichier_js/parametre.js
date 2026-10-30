@@ -2,6 +2,8 @@ const client = window.supabaseClient;
 
 let monId = null;
 let monPseudo = '';
+let monEmail = '';
+let maPhotoUrl = null;
 
 const banniereImage = document.getElementById('banniere-image');
 const banniereInput = document.getElementById('banniere-input');
@@ -14,6 +16,20 @@ const bioInput = document.getElementById('bio');
 const bioCompteur = document.getElementById('bio-compteur');
 const statutElement = document.getElementById('statut');
 
+const pseudoForm = document.getElementById('pseudo-form');
+const pseudoInput = document.getElementById('nouveau-pseudo');
+const pseudoStatut = document.getElementById('pseudo-statut');
+
+const emailForm = document.getElementById('email-form');
+const emailInput = document.getElementById('nouvel-email');
+const emailStatut = document.getElementById('email-statut');
+
+const mdpForm = document.getElementById('mdp-form');
+const mdpActuel = document.getElementById('mdp-actuel');
+const mdpNouveau = document.getElementById('mdp-nouveau');
+const mdpConfirmation = document.getElementById('mdp-confirmation');
+const mdpStatut = document.getElementById('mdp-statut');
+
 
 async function demarrer() {
     const { data: { user } } = await client.auth.getUser();
@@ -24,7 +40,9 @@ async function demarrer() {
     }
 
     monId = user.id;
+    monEmail = user.email;
     emailElement.textContent = user.email;
+    emailInput.value = user.email;
 
     const { data, error } = await client
         .from('membre')
@@ -40,6 +58,7 @@ async function demarrer() {
 
     monPseudo = data.pseudo;
     pseudoElement.textContent = data.pseudo;
+    pseudoInput.value = data.pseudo;
     bioInput.value = data.bio || '';
     mettreAJourCompteur();
     afficherPhoto(data.photo_url);
@@ -48,6 +67,7 @@ async function demarrer() {
 
 
 function afficherPhoto(url) {
+    maPhotoUrl = url;
     avatarElement.innerHTML = '';
 
     if (url) {
@@ -68,9 +88,9 @@ function afficherBanniere(url) {
 }
 
 
-function afficherStatut(texte, erreur) {
-    statutElement.textContent = texte;
-    statutElement.classList.toggle('profil__statut--erreur', erreur === true);
+function afficherStatut(element, texte, erreur) {
+    element.textContent = texte;
+    element.classList.toggle('profil__statut--erreur', erreur === true);
 }
 
 
@@ -83,16 +103,16 @@ async function envoyerImage(fichier, colonne) {
     if (!fichier) return;
 
     if (!fichier.type.startsWith('image/')) {
-        afficherStatut("Choisis un fichier image.", true);
+        afficherStatut(statutElement, "Choisis un fichier image.", true);
         return;
     }
 
     if (fichier.size > 5 * 1024 * 1024) {
-        afficherStatut("L'image ne doit pas dépasser 5 Mo.", true);
+        afficherStatut(statutElement, "L'image ne doit pas dépasser 5 Mo.", true);
         return;
     }
 
-    afficherStatut("Envoi de l'image...");
+    afficherStatut(statutElement, "Envoi de l'image...");
     photoInput.disabled = true;
     banniereInput.disabled = true;
 
@@ -104,7 +124,7 @@ async function envoyerImage(fichier, colonne) {
 
     if (erreurEnvoi) {
         console.error("Erreur envoi image :", erreurEnvoi.message);
-        afficherStatut("L'image n'a pas pu être envoyée.", true);
+        afficherStatut(statutElement, "L'image n'a pas pu être envoyée.", true);
         photoInput.disabled = false;
         banniereInput.disabled = false;
         return;
@@ -125,14 +145,14 @@ async function envoyerImage(fichier, colonne) {
 
     if (error) {
         console.error("Erreur profil :", error.message);
-        afficherStatut("L'image n'a pas pu être enregistrée.", true);
+        afficherStatut(statutElement, "L'image n'a pas pu être enregistrée.", true);
         return;
     }
 
     if (colonne === 'photo_url') afficherPhoto(data.publicUrl);
     else afficherBanniere(data.publicUrl);
 
-    afficherStatut("Image enregistrée !");
+    afficherStatut(statutElement, "Image enregistrée !");
 }
 
 
@@ -163,11 +183,136 @@ bioForm.addEventListener('submit', async (event) => {
 
     if (error) {
         console.error("Erreur bio :", error.message);
-        afficherStatut("La bio n'a pas pu être enregistrée.", true);
+        afficherStatut(statutElement, "La bio n'a pas pu être enregistrée.", true);
         return;
     }
 
-    afficherStatut("Bio enregistrée !");
+    afficherStatut(statutElement, "Bio enregistrée !");
+});
+
+
+pseudoForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+
+    const pseudo = pseudoInput.value.trim();
+
+    if (!pseudo) {
+        afficherStatut(pseudoStatut, "Le pseudo ne peut pas être vide.", true);
+        return;
+    }
+
+    if (pseudo === monPseudo) {
+        afficherStatut(pseudoStatut, "C'est déjà ton pseudo.", true);
+        return;
+    }
+
+    const bouton = pseudoForm.querySelector('button');
+    bouton.disabled = true;
+
+    try {
+        const { data: existant } = await client
+            .from('membre')
+            .select('id')
+            .eq('pseudo', pseudo)
+            .maybeSingle();
+
+        if (existant) {
+            afficherStatut(pseudoStatut, "Ce pseudo est déjà pris.", true);
+            return;
+        }
+
+        const { error } = await client
+            .from('membre')
+            .update({ pseudo: pseudo })
+            .eq('id', monId);
+
+        if (error) {
+            console.error("Erreur pseudo :", error.message);
+            afficherStatut(pseudoStatut, error.code === '23505' ? "Ce pseudo est déjà pris." : "Le pseudo n'a pas pu être modifié.", true);
+            return;
+        }
+
+        monPseudo = pseudo;
+        pseudoElement.textContent = pseudo;
+        pseudoInput.value = pseudo;
+        afficherPhoto(maPhotoUrl);
+        afficherStatut(pseudoStatut, "Pseudo modifié !");
+    } finally {
+        bouton.disabled = false;
+    }
+});
+
+
+emailForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+
+    const email = emailInput.value.trim();
+
+    if (email === monEmail) {
+        afficherStatut(emailStatut, "C'est déjà ton adresse mail.", true);
+        return;
+    }
+
+    const bouton = emailForm.querySelector('button');
+    bouton.disabled = true;
+
+    const { error } = await client.auth.updateUser(
+        { email: email },
+        { emailRedirectTo: window.location.origin + window.location.pathname }
+    );
+
+    bouton.disabled = false;
+
+    if (error) {
+        console.error("Erreur email :", error.message);
+        afficherStatut(emailStatut, "L'adresse n'a pas pu être modifiée : " + error.message, true);
+        return;
+    }
+
+    afficherStatut(emailStatut, "Un lien de confirmation a été envoyé. Clique dessus pour valider la nouvelle adresse (pense à vérifier aussi l'ancienne boîte mail).");
+});
+
+
+mdpForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+
+    if (mdpNouveau.value !== mdpConfirmation.value) {
+        afficherStatut(mdpStatut, "Les deux nouveaux mots de passe ne correspondent pas.", true);
+        return;
+    }
+
+    if (mdpNouveau.value.length < 6) {
+        afficherStatut(mdpStatut, "Le nouveau mot de passe doit faire au moins 6 caractères.", true);
+        return;
+    }
+
+    const bouton = mdpForm.querySelector('button');
+    bouton.disabled = true;
+
+    try {
+        const { error: erreurVerification } = await client.auth.signInWithPassword({
+            email: monEmail,
+            password: mdpActuel.value
+        });
+
+        if (erreurVerification) {
+            afficherStatut(mdpStatut, "Le mot de passe actuel est incorrect.", true);
+            return;
+        }
+
+        const { error } = await client.auth.updateUser({ password: mdpNouveau.value });
+
+        if (error) {
+            console.error("Erreur mot de passe :", error.message);
+            afficherStatut(mdpStatut, error.code === 'same_password' ? "Le nouveau mot de passe doit être différent de l'ancien." : "Le mot de passe n'a pas pu être modifié : " + error.message, true);
+            return;
+        }
+
+        mdpForm.reset();
+        afficherStatut(mdpStatut, "Mot de passe modifié !");
+    } finally {
+        bouton.disabled = false;
+    }
 });
 
 demarrer();

@@ -159,7 +159,8 @@ body {
 	font-size: 13px;
 }
 
-.profil__bio button {
+.profil__bio button,
+.profil__formulaire button {
 	padding: 8px 16px;
 	border: 0;
 	border-radius: 5px;
@@ -168,7 +169,8 @@ body {
 	cursor: pointer;
 }
 
-.profil__bio button:disabled {
+.profil__bio button:disabled,
+.profil__formulaire button:disabled {
 	opacity: 0.6;
 	cursor: default;
 }
@@ -182,6 +184,50 @@ body {
 
 .profil__statut--erreur {
 	color: #c62828;
+}
+
+.profil__compte {
+	padding: 0 20px 10px;
+	border-top: 1px solid #eee;
+}
+
+.profil__compte h2 {
+	margin: 20px 0 4px;
+	font-size: 18px;
+}
+
+.profil__formulaire {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	padding: 16px 0;
+	border-bottom: 1px solid #eee;
+}
+
+.profil__formulaire:last-child {
+	border-bottom: 0;
+}
+
+.profil__formulaire label {
+	font-size: 14px;
+	font-weight: bold;
+}
+
+.profil__formulaire input {
+	padding: 10px;
+	border: 1px solid #ccc;
+	border-radius: 5px;
+	font: inherit;
+}
+
+.profil__formulaire button {
+	align-self: flex-start;
+}
+
+.profil__aide {
+	margin: 0;
+	color: #777;
+	font-size: 13px;
 }
 
 @media (hover: none) {
@@ -209,5 +255,9 @@ body {
 
 	.profil__bio {
 		padding: 14px;
+	}
+
+	.profil__compte {
+		padding: 0 14px 6px;
 	}
 }

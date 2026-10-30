@@ -18,6 +18,7 @@ const profilAvatar = document.getElementById('profil-avatar');
 const profilPseudo = document.getElementById('profil-pseudo');
 const profilBio = document.getElementById('profil-bio');
 const profilFermer = document.getElementById('profil-fermer');
+const boutonDeconnexion = document.getElementById('deconnexion');
 
 let contactActuel = null;
 const messagesElement = document.getElementById('messages');
@@ -338,6 +339,22 @@ profilFermer.addEventListener('click', () => profilDialog.close());
 
 profilDialog.addEventListener('click', (event) => {
     if (event.target === profilDialog) profilDialog.close();
+});
+
+
+boutonDeconnexion.addEventListener('click', async () => {
+    boutonDeconnexion.disabled = true;
+
+    const { error } = await client.auth.signOut();
+
+    if (error) {
+        console.error("Erreur déconnexion :", error.message);
+        alert("La déconnexion a échoué.");
+        boutonDeconnexion.disabled = false;
+        return;
+    }
+
+    window.location.href = 'connexion.html';
 });
 window.addEventListener('resize', fermerPicker);
 
