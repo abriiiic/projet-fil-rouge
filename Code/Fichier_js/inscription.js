@@ -26,6 +26,7 @@ if (InscriptionForm) {
         if (boutonSubmit) boutonSubmit.disabled = true;
 
         try {
+            // on vérifie le pseudo AVANT de créer le compte sinon on se retrouve avec un compte sans pseudo
             const { data: pseudoExistant } = await window.supabaseClient
                 .from('membre')
                 .select('id')
@@ -48,6 +49,7 @@ if (InscriptionForm) {
                 return;
             }
 
+            // email déjà pris : Supabase ne renvoie pas d'erreur juste un compte avec "identities" vide
             if (data.user && data.user.identities && data.user.identities.length === 0) {
                 alert("Cette adresse mail est déjà utilisée.");
                 return;
@@ -63,6 +65,7 @@ if (InscriptionForm) {
                 return;
             }
 
+            // pas de session = la confirmation par mail est activées l'utilisateur n'est pas encore connecté
             if (!data.session) {
                 alert("Compte créé ! Clique sur le lien reçu par mail pour confirmer ton adresse, puis connecte-toi.");
                 window.location.href = 'connexion.html';

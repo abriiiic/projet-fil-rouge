@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="stylesheet" href="../Fichier_css/parametre.css">
+	<title>Mon profil</title>
+</head>
+<body>
+	<main class="profil">
+		<a class="profil__retour" href="conversation.html">&#8592; Retour aux conversations</a>
+
+		<section class="profil__carte">
+			<div class="profil__banniere">
+				<img id="banniere-image" alt="" hidden>
+				<label class="profil__bouton-banniere">
+					Changer la bannière
+					<input id="banniere-input" type="file" accept="image/*" hidden>
+				</label>
+			</div>
+
+			<div class="profil__haut">
+				<label class="profil__avatar-label" aria-label="Changer la photo de profil">
+					<span id="avatar" class="profil__avatar">?</span>
+					<span class="profil__avatar-modifier">Modifier</span>
+					<input id="photo-input" type="file" accept="image/*" hidden>
+				</label>
+
+				<div class="profil__identite">
+					<h1 id="pseudo">Chargement...</h1>
+					<p id="email"></p>
+				</div>
+			</div>
+
+			<form id="bio-form" class="profil__bio">
+				<label for="bio">Bio</label>
+				<textarea id="bio" name="bio" rows="4" maxlength="300" placeholder="Parle un peu de toi..."></textarea>
+
+				<div class="profil__bio-bas">
+					<span id="bio-compteur" class="profil__compteur">0 / 300</span>
+					<button type="submit">Enregistrer</button>
+				</div>
+
+				<p id="statut" class="profil__statut" aria-live="polite"></p>
+			</form>
+
+			<section class="profil__compte">
+				<h2>Informations du compte</h2>
+
+				<form id="pseudo-form" class="profil__formulaire">
+					<label for="nouveau-pseudo">Pseudo</label>
+					<input id="nouveau-pseudo" name="pseudo" type="text" maxlength="50" required>
+					<button type="submit">Changer le pseudo</button>
+					<p id="pseudo-statut" class="profil__statut" aria-live="polite"></p>
+				</form>
+
+				<form id="email-form" class="profil__formulaire">
+					<label for="nouvel-email">Adresse mail</label>
+					<input id="nouvel-email" name="email" type="email" autocomplete="email" required>
+					<p class="profil__aide">Un lien de confirmation sera envoyé par mail pour valider la nouvelle adresse.</p>
+					<button type="submit">Changer l'adresse mail</button>
+					<p id="email-statut" class="profil__statut" aria-live="polite"></p>
+				</form>
+
+				<form id="mdp-form" class="profil__formulaire">
+					<label for="mdp-actuel">Mot de passe actuel</label>
+					<input id="mdp-actuel" name="mdp-actuel" type="password" autocomplete="current-password" required>
+
+					<label for="mdp-nouveau">Nouveau mot de passe</label>
+					<input id="mdp-nouveau" name="mdp-nouveau" type="password" autocomplete="new-password" minlength="6" required>
+
+					<label for="mdp-confirmation">Confirmer le nouveau mot de passe</label>
+					<input id="mdp-confirmation" name="mdp-confirmation" type="password" autocomplete="new-password" minlength="6" required>
+
+					<button type="submit">Changer le mot de passe</button>
+					<p id="mdp-statut" class="profil__statut" aria-live="polite"></p>
+				</form>
+			</section>
+		</section>
+	</main>
+
+	<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+	<script src="../Fichier_js/supabase-config.js"></script>
+	<script src="../Fichier_js/parametre.js" defer></script>
+</body>
+</html>
