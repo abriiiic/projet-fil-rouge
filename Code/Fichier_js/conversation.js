@@ -26,6 +26,7 @@ const messageForm = document.getElementById('message-form');
 const messageInput = document.getElementById('message-input');
 const boutonEnvoyer = document.getElementById('send-message');
 
+// une seule barre d'emojis pour toute la page, on la déplace au-dessus du message choisi
 const picker = document.createElement('div');
 picker.className = 'picker';
 picker.hidden = true;
@@ -88,6 +89,7 @@ async function chargerConversations() {
     const { data: conversations, error } = await client
         .from('conversation')
         .select('id, membre1_id, membre2_id')
+        // je peux être membre1 ou membre2 donc on cherche des deux côtés
         .or(`membre1_id.eq.${monId},membre2_id.eq.${monId}`)
         .order('id');
 
@@ -108,6 +110,7 @@ async function chargerConversations() {
     const { data: membres, error: erreurMembres } = await client
         .from('membre')
         .select('id, pseudo, photo_url')
+        // le filter enlève les id vides, sinon la requête plante
         .in('id', conversations.map(autreId).filter(id => id));
 
     if (erreurMembres) {
@@ -162,10 +165,12 @@ async function ouvrirConversation(conversationId, contact, bouton) {
 
     const { data: messages, error } = await client
         .from('message')
+        // reaction(...) ramène les réactions de chaque message dans la même requête
         .select('id, auteur_id, contenu, date_envoi, reaction(membre_id, emoji)')
         .eq('conversation_id', conversationId)
         .order('id');
 
+    // si on a cliqué sur une autre conversation pendant le chargement on laisse tomber celle-ci
     if (conversationElement.dataset.conversationId !== String(conversationId)) return;
 
     if (error) {
@@ -174,6 +179,7 @@ async function ouvrirConversation(conversationId, contact, bouton) {
         return;
     }
 
+    // on revide juste avant d'afficher sinon un double clic affiche tout en double
     messagesElement.innerHTML = '';
     messages.forEach(afficherMessage);
     messagesElement.scrollTop = messagesElement.scrollHeight;
@@ -182,6 +188,7 @@ async function ouvrirConversation(conversationId, contact, bouton) {
 
 function afficherMessage(message) {
     if (!message.contenu) return;
+    // déjà à l'écran (ça arrive si on rouvre la conversation pendant un envoi)
     if (messagesElement.querySelector(`[data-id="${message.id}"]`)) return;
 
     const div = document.createElement('div');
@@ -210,6 +217,7 @@ function afficherMessage(message) {
     plus.textContent = '+';
     plus.setAttribute('aria-label', 'Réagir au message');
     plus.addEventListener('click', (event) => {
+        // sinon le clic remonte jusqu'au document qui referme la barre direct
         event.stopPropagation();
         ouvrirPicker(message.id, div);
     });
@@ -266,6 +274,7 @@ function ouvrirPicker(messageId, bulle) {
 
     const rect = bulle.getBoundingClientRect();
 
+    // au-dessus du message ou en dessous s'il n'y a pas la place sans jamais sortir de l'écran
     let top = rect.top - picker.offsetHeight - 8;
     if (top < 8) top = rect.bottom + 8;
 
@@ -292,6 +301,7 @@ document.addEventListener('keydown', (event) => {
 });
 
 messagesElement.addEventListener('scroll', fermerPicker);
+window.addEventListener('resize', fermerPicker);
 
 
 async function ouvrirProfil() {
@@ -338,6 +348,7 @@ contactBouton.addEventListener('click', ouvrirProfil);
 profilFermer.addEventListener('click', () => profilDialog.close());
 
 profilDialog.addEventListener('click', (event) => {
+    // un clic sur le fond gris autour de la carte tombe directement sur le dialog
     if (event.target === profilDialog) profilDialog.close();
 });
 
@@ -356,11 +367,11 @@ boutonDeconnexion.addEventListener('click', async () => {
 
     window.location.href = 'connexion.html';
 });
-window.addEventListener('resize', fermerPicker);
 
 
 async function reagir(messageId, emoji) {
     const mienne = reactionsParMessage[messageId].find(r => r.membre_id === monId);
+    // recliquer sur sa propre réaction = on l'enlève
     const retirer = mienne && mienne.emoji === emoji;
 
     const { error } = retirer
@@ -371,6 +382,7 @@ async function reagir(messageId, emoji) {
             .eq('membre_id', monId)
         : await client
             .from('reaction')
+            // upsert remplace mon ancienne réaction s'il y en avait une (une seule par message)
             .upsert({ message_id: messageId, membre_id: monId, emoji: emoji });
 
     if (error) {
@@ -386,6 +398,7 @@ async function reagir(messageId, emoji) {
 }
 
 
+// la date est stockée en UTC, toLocale... la remet à l'heure de l'utilisateur
 function formaterHeure(dateEnvoi) {
     const date = new Date(dateEnvoi);
     if (isNaN(date)) return '';
@@ -411,6 +424,7 @@ messageForm.addEventListener('submit', async (event) => {
     const { data: message, error } = await client
         .from('message')
         .insert({
+            // dataset renvoie toujours du texte la colonne attend un nombre
             conversation_id: Number(conversationId),
             auteur_id: monId,
             contenu: contenu
@@ -426,6 +440,7 @@ messageForm.addEventListener('submit', async (event) => {
         return;
     }
 
+    // on ne vide pas si l'utilisateur a déjà commencé à taper autre chose pendant l'envoi
     if (messageInput.value.trim() === contenu) messageInput.value = '';
 
     if (conversationElement.dataset.conversationId !== conversationId) return;

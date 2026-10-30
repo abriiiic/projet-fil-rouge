@@ -116,6 +116,7 @@ async function envoyerImage(fichier, colonne) {
     photoInput.disabled = true;
     banniereInput.disabled = true;
 
+    // un nom unique à chaque envoi (Date.now()) comme ça pas besoin des droits pour remplacer un fichier
     const chemin = monId + '/' + colonne + '-' + Date.now() + '.' + fichier.type.split('/')[1];
 
     const { error: erreurEnvoi } = await client.storage
@@ -132,6 +133,7 @@ async function envoyerImage(fichier, colonne) {
 
     const { data } = client.storage.from('profils').getPublicUrl(chemin);
 
+    // colonne vaut 'photo_url' ou 'banniere_url' on met à jour la bonne
     const modification = {};
     modification[colonne] = data.publicUrl;
 
@@ -158,6 +160,7 @@ async function envoyerImage(fichier, colonne) {
 
 photoInput.addEventListener('change', () => {
     envoyerImage(photoInput.files[0], 'photo_url');
+    // on vide le champ pour pouvoir rechoisir la même image juste après
     photoInput.value = '';
 });
 
@@ -228,6 +231,7 @@ pseudoForm.addEventListener('submit', async (event) => {
 
         if (error) {
             console.error("Erreur pseudo :", error.message);
+            // 23505 = la contrainte UNIQUE de la base a refusé (quelqu'un a pris le pseudo entre temps)
             afficherStatut(pseudoStatut, error.code === '23505' ? "Ce pseudo est déjà pris." : "Le pseudo n'a pas pu être modifié.", true);
             return;
         }
@@ -256,6 +260,7 @@ emailForm.addEventListener('submit', async (event) => {
     const bouton = emailForm.querySelector('button');
     bouton.disabled = true;
 
+    // l'adresse ne change pas tout de suite : Supabase envoie un lien et attend qu'on clique dessus
     const { error } = await client.auth.updateUser(
         { email: email },
         { emailRedirectTo: window.location.origin + window.location.pathname }
@@ -290,6 +295,7 @@ mdpForm.addEventListener('submit', async (event) => {
     bouton.disabled = true;
 
     try {
+        // on se reconnecte avec l'ancien mot de passe juste pour vérifier qu'il est bon
         const { error: erreurVerification } = await client.auth.signInWithPassword({
             email: monEmail,
             password: mdpActuel.value
