@@ -25,6 +25,12 @@ const messagesElement = document.getElementById('messages');
 const messageForm = document.getElementById('message-form');
 const messageInput = document.getElementById('message-input');
 const boutonEnvoyer = document.getElementById('send-message');
+const photoMessageInput = document.getElementById('photo-message');
+const apercuElement = document.getElementById('apercu');
+const apercuImage = document.getElementById('apercu-image');
+const apercuRetirer = document.getElementById('apercu-retirer');
+
+let imageAEnvoyer = null;
 
 // une seule barre d'emojis pour toute la page, on la déplace au-dessus du message choisi
 const picker = document.createElement('div');
@@ -156,6 +162,8 @@ async function ouvrirConversation(conversationId, contact, bouton) {
     bouton.setAttribute('aria-current', 'true');
 
     fermerPicker();
+    // on ne garde pas une photo choisie pour une autre conversation
+    retirerImage();
     conversationElement.dataset.conversationId = conversationId;
     contactActuel = contact;
     contactBouton.disabled = !contact.id;
@@ -166,7 +174,7 @@ async function ouvrirConversation(conversationId, contact, bouton) {
     const { data: messages, error } = await client
         .from('message')
         // reaction(...) ramène les réactions de chaque message dans la même requête
-        .select('id, auteur_id, contenu, date_envoi, reaction(membre_id, emoji)')
+        .select('id, auteur_id, contenu, image_url, date_envoi, reaction(membre_id, emoji)')
         .eq('conversation_id', conversationId)
         .order('id');
 
@@ -187,7 +195,7 @@ async function ouvrirConversation(conversationId, contact, bouton) {
 
 
 function afficherMessage(message) {
-    if (!message.contenu) return;
+    if (!message.contenu && !message.image_url) return;
     // déjà à l'écran (ça arrive si on rouvre la conversation pendant un envoi)
     if (messagesElement.querySelector(`[data-id="${message.id}"]`)) return;
 
@@ -195,10 +203,30 @@ function afficherMessage(message) {
     div.dataset.id = message.id;
     div.className = message.auteur_id === monId ? 'message message--sent' : 'message message--received';
 
-    const p = document.createElement('p');
-    p.className = 'message__content';
-    p.textContent = message.contenu;
-    div.appendChild(p);
+    // on n'accepte que des liens https, sinon un lien "javascript:..." mis en base pourrait s'exécuter au clic
+    if (message.image_url && message.image_url.startsWith('https://')) {
+        const lien = document.createElement('a');
+        lien.className = 'message__image-lien';
+        lien.href = message.image_url;
+        lien.target = '_blank';
+        lien.rel = 'noopener';
+
+        const img = document.createElement('img');
+        img.className = 'message__image';
+        img.src = message.image_url;
+        img.alt = 'Photo envoyée';
+        img.addEventListener('load', () => garderEnBas(img));
+
+        lien.appendChild(img);
+        div.appendChild(lien);
+    }
+
+    if (message.contenu) {
+        const p = document.createElement('p');
+        p.className = 'message__content';
+        p.textContent = message.contenu;
+        div.appendChild(p);
+    }
 
     if (message.date_envoi) {
         const heure = document.createElement('span');
@@ -411,15 +439,80 @@ function formaterHeure(dateEnvoi) {
 }
 
 
+// une image qui finit de charger agrandit la bulle : on redescend si on était déjà en bas
+function garderEnBas(img) {
+    const distanceDuBas = messagesElement.scrollHeight - messagesElement.scrollTop - messagesElement.clientHeight;
+    if (distanceDuBas <= img.offsetHeight + 50) messagesElement.scrollTop = messagesElement.scrollHeight;
+}
+
+
+function retirerImage() {
+    // l'aperçu utilise une adresse temporaire en mémoire, on la libère
+    if (apercuImage.src) URL.revokeObjectURL(apercuImage.src);
+    apercuImage.removeAttribute('src');
+    apercuElement.hidden = true;
+    imageAEnvoyer = null;
+}
+
+
+photoMessageInput.addEventListener('change', () => {
+    const fichier = photoMessageInput.files[0];
+    // on vide le champ pour pouvoir rechoisir la même photo juste après
+    photoMessageInput.value = '';
+
+    if (!fichier) return;
+
+    if (!fichier.type.startsWith('image/')) {
+        alert("Choisis un fichier image.");
+        return;
+    }
+
+    if (fichier.size > 5 * 1024 * 1024) {
+        alert("L'image ne doit pas dépasser 5 Mo.");
+        return;
+    }
+
+    retirerImage();
+    imageAEnvoyer = fichier;
+    // aperçu direct depuis l'ordi, rien n'est envoyé à Supabase avant de cliquer sur envoyer
+    apercuImage.src = URL.createObjectURL(fichier);
+    apercuElement.hidden = false;
+    messageInput.focus();
+});
+
+apercuRetirer.addEventListener('click', retirerImage);
+
+
 messageForm.addEventListener('submit', async (event) => {
     event.preventDefault();
 
     const conversationId = conversationElement.dataset.conversationId;
     const contenu = messageInput.value.trim();
+    const image = imageAEnvoyer;
 
-    if (!conversationId || !contenu) return;
+    if (!conversationId || (!contenu && !image)) return;
 
     boutonEnvoyer.disabled = true;
+
+    let imageUrl = null;
+
+    // la photo part d'abord dans le bucket, on enregistre ensuite juste son adresse dans le message
+    if (image) {
+        const chemin = conversationId + '/' + monId + '-' + Date.now() + '.' + image.type.split('/')[1];
+
+        const { error: erreurImage } = await client.storage
+            .from('messages')
+            .upload(chemin, image);
+
+        if (erreurImage) {
+            console.error("Erreur envoi photo :", erreurImage.message);
+            alert("La photo n'a pas pu être envoyée.");
+            boutonEnvoyer.disabled = false;
+            return;
+        }
+
+        imageUrl = client.storage.from('messages').getPublicUrl(chemin).data.publicUrl;
+    }
 
     const { data: message, error } = await client
         .from('message')
@@ -427,9 +520,10 @@ messageForm.addEventListener('submit', async (event) => {
             // dataset renvoie toujours du texte la colonne attend un nombre
             conversation_id: Number(conversationId),
             auteur_id: monId,
-            contenu: contenu
+            contenu: contenu || null,
+            image_url: imageUrl
         })
-        .select('id, auteur_id, contenu, date_envoi, reaction(membre_id, emoji)')
+        .select('id, auteur_id, contenu, image_url, date_envoi, reaction(membre_id, emoji)')
         .single();
 
     boutonEnvoyer.disabled = false;
@@ -442,6 +536,8 @@ messageForm.addEventListener('submit', async (event) => {
 
     // on ne vide pas si l'utilisateur a déjà commencé à taper autre chose pendant l'envoi
     if (messageInput.value.trim() === contenu) messageInput.value = '';
+    // pareil pour la photo : on ne retire l'aperçu que si c'est bien celle qui vient de partir
+    if (imageAEnvoyer === image) retirerImage();
 
     if (conversationElement.dataset.conversationId !== conversationId) return;
 
