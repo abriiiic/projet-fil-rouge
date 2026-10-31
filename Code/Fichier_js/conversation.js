@@ -162,6 +162,7 @@ async function ouvrirConversation(conversationId, contact, bouton) {
     bouton.setAttribute('aria-current', 'true');
 
     fermerPicker();
+    // on ne garde pas une photo choisie pour une autre conversation
     retirerImage();
     conversationElement.dataset.conversationId = conversationId;
     contactActuel = contact;
@@ -446,6 +447,7 @@ function garderEnBas(img) {
 
 
 function retirerImage() {
+    // l'aperçu utilise une adresse temporaire en mémoire, on la libère
     if (apercuImage.src) URL.revokeObjectURL(apercuImage.src);
     apercuImage.removeAttribute('src');
     apercuElement.hidden = true;
@@ -455,6 +457,7 @@ function retirerImage() {
 
 photoMessageInput.addEventListener('change', () => {
     const fichier = photoMessageInput.files[0];
+    // on vide le champ pour pouvoir rechoisir la même photo juste après
     photoMessageInput.value = '';
 
     if (!fichier) return;
@@ -471,6 +474,7 @@ photoMessageInput.addEventListener('change', () => {
 
     retirerImage();
     imageAEnvoyer = fichier;
+    // aperçu direct depuis l'ordi, rien n'est envoyé à Supabase avant de cliquer sur envoyer
     apercuImage.src = URL.createObjectURL(fichier);
     apercuElement.hidden = false;
     messageInput.focus();
@@ -492,6 +496,7 @@ messageForm.addEventListener('submit', async (event) => {
 
     let imageUrl = null;
 
+    // la photo part d'abord dans le bucket, on enregistre ensuite juste son adresse dans le message
     if (image) {
         const chemin = conversationId + '/' + monId + '-' + Date.now() + '.' + image.type.split('/')[1];
 
@@ -531,6 +536,7 @@ messageForm.addEventListener('submit', async (event) => {
 
     // on ne vide pas si l'utilisateur a déjà commencé à taper autre chose pendant l'envoi
     if (messageInput.value.trim() === contenu) messageInput.value = '';
+    // pareil pour la photo : on ne retire l'aperçu que si c'est bien celle qui vient de partir
     if (imageAEnvoyer === image) retirerImage();
 
     if (conversationElement.dataset.conversationId !== conversationId) return;
