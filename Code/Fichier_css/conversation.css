@@ -56,6 +56,7 @@ body {
 	overflow-wrap: anywhere;
 }
 
+/* Zone de recherche et état visuel du champ actif. */
 .sidebar__recherche {
 	padding: 10px 15px;
 	border-bottom: 1px solid #ddd;
@@ -143,6 +144,7 @@ body {
 	color: #777;
 }
 
+/* Message affiché quand le filtre ne trouve aucun contact. */
 .sidebar__recherche-vide {
 	padding: 15px;
 	color: #777;

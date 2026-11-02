@@ -33,6 +33,7 @@ const apercuRetirer = document.getElementById('apercu-retirer');
 
 let imageAEnvoyer = null;
 
+// Filtre en temps réel les conversations déjà chargées, sans nouvelle requête Supabase.
 function filtrerConversations() {
     const recherche = rechercheConversations.value.trim().toLocaleLowerCase();
     const boutons = listeConversations.querySelectorAll('.sidebar__conversation');
