@@ -8,6 +8,7 @@ const reactionsParMessage = {};
 const monPseudoElement = document.getElementById('mon-pseudo');
 const monAvatarElement = document.getElementById('mon-avatar');
 const listeConversations = document.getElementById('liste-conversations');
+const rechercheConversations = document.getElementById('recherche-conversations');
 const conversationElement = document.getElementById('conversation');
 const contactNameElement = document.getElementById('contact-name');
 const contactAvatarElement = document.getElementById('contact-avatar');
@@ -31,6 +32,31 @@ const apercuImage = document.getElementById('apercu-image');
 const apercuRetirer = document.getElementById('apercu-retirer');
 
 let imageAEnvoyer = null;
+
+// Filtre en temps réel les conversations déjà chargées, sans nouvelle requête Supabase.
+function filtrerConversations() {
+    const recherche = rechercheConversations.value.trim().toLocaleLowerCase();
+    const boutons = listeConversations.querySelectorAll('.sidebar__conversation');
+    let nombreVisible = 0;
+
+    boutons.forEach(bouton => {
+        const nom = bouton.querySelector('.sidebar__conversation-nom').textContent.toLocaleLowerCase();
+        const visible = !recherche || nom.includes(recherche);
+        bouton.closest('li').hidden = !visible;
+        if (visible) nombreVisible++;
+    });
+
+    const ancienMessage = listeConversations.querySelector('.sidebar__recherche-vide');
+    if (ancienMessage) ancienMessage.remove();
+
+    if (boutons.length > 0 && nombreVisible === 0) {
+        const message = document.createElement('li');
+        message.className = 'sidebar__recherche-vide';
+        message.textContent = 'Aucune conversation trouvée';
+        listeConversations.appendChild(message);
+    }
+}
+
 
 // une seule barre d'emojis pour toute la page, on la déplace au-dessus du message choisi
 const picker = document.createElement('div');
@@ -141,6 +167,7 @@ async function chargerConversations() {
         afficherAvatar(avatar, contact.pseudo, contact.photo_url);
 
         const nom = document.createElement('span');
+        nom.className = 'sidebar__conversation-nom';
         nom.textContent = contact.pseudo;
 
         bouton.appendChild(avatar);
@@ -150,6 +177,8 @@ async function chargerConversations() {
         li.appendChild(bouton);
         listeConversations.appendChild(li);
     });
+
+    filtrerConversations();
 }
 
 
@@ -481,6 +510,7 @@ photoMessageInput.addEventListener('change', () => {
 });
 
 apercuRetirer.addEventListener('click', retirerImage);
+rechercheConversations.addEventListener('input', filtrerConversations);
 
 
 messageForm.addEventListener('submit', async (event) => {

@@ -56,6 +56,32 @@ body {
 	overflow-wrap: anywhere;
 }
 
+/* Zone de recherche et état visuel du champ actif. */
+.sidebar__recherche {
+	padding: 10px 15px;
+	border-bottom: 1px solid #ddd;
+}
+
+.sidebar__recherche label {
+	display: block;
+	margin-bottom: 5px;
+	color: #555;
+	font-size: 12px;
+}
+
+.sidebar__recherche input {
+	width: 100%;
+	padding: 8px 10px;
+	border: 1px solid #ccc;
+	border-radius: 5px;
+	font: inherit;
+}
+
+.sidebar__recherche input:focus {
+	border-color: #2879a8;
+	outline: 2px solid rgba(40, 121, 168, 0.2);
+}
+
 .sidebar__liste {
 	flex: 1;
 	margin: 0;
@@ -116,6 +142,13 @@ body {
 .sidebar__vide {
 	padding: 15px;
 	color: #777;
+}
+
+/* Message affiché quand le filtre ne trouve aucun contact. */
+.sidebar__recherche-vide {
+	padding: 15px;
+	color: #777;
+	font-size: 14px;
 }
 
 .conversation {
