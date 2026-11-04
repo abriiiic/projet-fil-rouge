@@ -157,7 +157,9 @@ async function chargerConversations() {
         const autre = membres.find(m => m.id === autreId(conversation));
         const contact = autre || { id: autreId(conversation), pseudo: 'Inconnu', photo_url: null };
 
+        // Chaque ligne contient l'ouverture de la conversation et son action de suppression.
         const li = document.createElement('li');
+        li.className = 'sidebar__conversation-ligne';
         const bouton = document.createElement('button');
         bouton.type = 'button';
         bouton.className = 'sidebar__conversation';
@@ -174,11 +176,66 @@ async function chargerConversations() {
         bouton.appendChild(nom);
         bouton.addEventListener('click', () => ouvrirConversation(conversation.id, contact, bouton));
 
+        // Le bouton est séparé pour éviter d'ouvrir la conversation en le supprimant.
+        const boutonSupprimer = document.createElement('button');
+        boutonSupprimer.type = 'button';
+        boutonSupprimer.className = 'sidebar__supprimer';
+        boutonSupprimer.textContent = '🗑️';
+        boutonSupprimer.setAttribute('aria-label', `Supprimer la conversation avec ${contact.pseudo}`);
+        boutonSupprimer.addEventListener('click', () => supprimerConversation(conversation.id, contact.pseudo, boutonSupprimer));
+
         li.appendChild(bouton);
+        li.appendChild(boutonSupprimer);
         listeConversations.appendChild(li);
     });
 
     filtrerConversations();
+}
+
+
+async function supprimerConversation(conversationId, pseudo, bouton) {
+    if (!window.confirm(`Supprimer la conversation avec ${pseudo} ? Cette action est irréversible.`)) return;
+
+    bouton.disabled = true;
+
+    // Les messages sont supprimés avant la conversation pour respecter la relation entre les tables.
+    const { error: erreurMessages } = await client
+        .from('message')
+        .delete()
+        .eq('conversation_id', conversationId);
+
+    if (erreurMessages) {
+        console.error("Erreur suppression messages :", erreurMessages.message);
+        alert("La conversation n'a pas pu être supprimée.");
+        bouton.disabled = false;
+        return;
+    }
+
+    const { error } = await client
+        .from('conversation')
+        .delete()
+        .eq('id', conversationId);
+
+    if (error) {
+        console.error("Erreur suppression conversation :", error.message);
+        alert("La conversation n'a pas pu être supprimée.");
+        bouton.disabled = false;
+        return;
+    }
+
+    // Si la conversation affichée vient d'être supprimée, on remet l'interface à son état initial.
+    if (conversationElement.dataset.conversationId === String(conversationId)) {
+        fermerPicker();
+        retirerImage();
+        conversationElement.dataset.conversationId = '';
+        contactActuel = null;
+        contactBouton.disabled = true;
+        contactNameElement.textContent = 'Choisissez une conversation';
+        afficherAvatar(contactAvatarElement, '?', null);
+        messagesElement.innerHTML = '';
+    }
+
+    await chargerConversations();
 }
 
 
