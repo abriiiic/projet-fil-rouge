@@ -132,8 +132,30 @@ body {
 	cursor: pointer;
 }
 
+.sidebar__favori {
+	/* L'étoile permet d'identifier et de modifier rapidement un favori. */
+	flex-shrink: 0;
+	padding: 8px 4px;
+	border: 0;
+	background: none;
+	color: #888;
+	font: inherit;
+	font-size: 20px;
+	line-height: 1;
+	cursor: pointer;
+}
+
+.sidebar__favori:hover,
+.sidebar__favori--actif {
+	color: #d99a00;
+}
+
 .sidebar__supprimer:hover {
 	background: #fdecea;
+}
+
+.sidebar__favori:focus-visible {
+	background: #fff4d6;
 }
 
 .sidebar__supprimer:disabled {

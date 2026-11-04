@@ -1,6 +1,7 @@
 const client = window.supabaseClient;
 
 let monId = null;
+let favorisConversations = new Set();
 
 const EMOJIS = ['👍', '❤️', '😂', '😮', '😢'];
 const reactionsParMessage = {};
@@ -32,6 +33,31 @@ const apercuImage = document.getElementById('apercu-image');
 const apercuRetirer = document.getElementById('apercu-retirer');
 
 let imageAEnvoyer = null;
+
+// Les favoris sont propres à chaque utilisateur et à cet appareil.
+// Les identifiants sont stockés en texte pour rester cohérents avec localStorage.
+function chargerFavoris() {
+    try {
+        const favoris = JSON.parse(localStorage.getItem(`favoris-conversations-${monId}`) || '[]');
+        return new Set(Array.isArray(favoris) ? favoris.map(String) : []);
+    } catch (error) {
+        console.error("Erreur chargement favoris :", error);
+        return new Set();
+    }
+}
+
+
+function enregistrerFavoris() {
+    try {
+        localStorage.setItem(
+            `favoris-conversations-${monId}`,
+            JSON.stringify([...favorisConversations])
+        );
+    } catch (error) {
+        console.error("Erreur enregistrement favoris :", error);
+        alert("Le favori n'a pas pu être enregistré sur cet appareil.");
+    }
+}
 
 // Filtre en temps réel les conversations déjà chargées, sans nouvelle requête Supabase.
 function filtrerConversations() {
@@ -94,6 +120,7 @@ async function demarrer() {
     }
 
     monId = user.id;
+    favorisConversations = chargerFavoris();
     await chargerMonPseudo();
     await chargerConversations();
 }
@@ -153,7 +180,16 @@ async function chargerConversations() {
 
     listeConversations.innerHTML = '';
 
-    conversations.forEach(conversation => {
+    // Les favoris sont affichés en premier, puis les autres conversations gardent
+    // leur ordre initial basé sur l'identifiant.
+    conversations
+        .sort((a, b) => {
+            const aEstFavorite = favorisConversations.has(String(a.id));
+            const bEstFavorite = favorisConversations.has(String(b.id));
+            if (aEstFavorite !== bEstFavorite) return bEstFavorite - aEstFavorite;
+            return a.id - b.id;
+        })
+        .forEach(conversation => {
         const autre = membres.find(m => m.id === autreId(conversation));
         const contact = autre || { id: autreId(conversation), pseudo: 'Inconnu', photo_url: null };
 
@@ -176,6 +212,16 @@ async function chargerConversations() {
         bouton.appendChild(nom);
         bouton.addEventListener('click', () => ouvrirConversation(conversation.id, contact, bouton));
 
+        const boutonFavori = document.createElement('button');
+        boutonFavori.type = 'button';
+        boutonFavori.className = 'sidebar__favori';
+        boutonFavori.setAttribute('aria-label', `${favorisConversations.has(String(conversation.id)) ? 'Retirer des' : 'Ajouter aux'} favoris : ${contact.pseudo}`);
+        boutonFavori.addEventListener('click', (event) => {
+            event.stopPropagation();
+            basculerFavori(conversation.id, contact.pseudo, boutonFavori, li);
+        });
+        afficherEtatFavori(boutonFavori, conversation.id);
+
         // Le bouton est séparé pour éviter d'ouvrir la conversation en le supprimant.
         const boutonSupprimer = document.createElement('button');
         boutonSupprimer.type = 'button';
@@ -185,11 +231,47 @@ async function chargerConversations() {
         boutonSupprimer.addEventListener('click', () => supprimerConversation(conversation.id, contact.pseudo, boutonSupprimer));
 
         li.appendChild(bouton);
+        li.appendChild(boutonFavori);
         li.appendChild(boutonSupprimer);
         listeConversations.appendChild(li);
-    });
+        });
 
     filtrerConversations();
+}
+
+
+function afficherEtatFavori(bouton, conversationId) {
+    const estFavorite = favorisConversations.has(String(conversationId));
+    bouton.textContent = estFavorite ? '★' : '☆';
+    bouton.classList.toggle('sidebar__favori--actif', estFavorite);
+    bouton.setAttribute('aria-pressed', String(estFavorite));
+}
+
+
+// Met à jour le favori localement puis réordonne les lignes sans recharger la page.
+function basculerFavori(conversationId, pseudo, bouton, ligne) {
+    const cle = String(conversationId);
+    if (favorisConversations.has(cle)) {
+        favorisConversations.delete(cle);
+    } else {
+        favorisConversations.add(cle);
+    }
+
+    enregistrerFavoris();
+    afficherEtatFavori(bouton, conversationId);
+    bouton.setAttribute(
+        'aria-label',
+        `${favorisConversations.has(cle) ? 'Retirer des' : 'Ajouter aux'} favoris : ${pseudo}`
+    );
+
+    const lignes = [...listeConversations.querySelectorAll('.sidebar__conversation-ligne')];
+    lignes
+        .sort((a, b) => {
+            const aEstFavorite = a.querySelector('.sidebar__favori--actif') !== null;
+            const bEstFavorite = b.querySelector('.sidebar__favori--actif') !== null;
+            return bEstFavorite - aEstFavorite;
+        })
+        .forEach(element => listeConversations.appendChild(element));
 }
 
 
