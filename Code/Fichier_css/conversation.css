@@ -133,6 +133,7 @@ body {
 }
 
 .sidebar__favori {
+	/* L'étoile permet d'identifier et de modifier rapidement un favori. */
 	flex-shrink: 0;
 	padding: 8px 4px;
 	border: 0;

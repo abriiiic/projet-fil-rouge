@@ -34,6 +34,8 @@ const apercuRetirer = document.getElementById('apercu-retirer');
 
 let imageAEnvoyer = null;
 
+// Les favoris sont propres à chaque utilisateur et à cet appareil.
+// Les identifiants sont stockés en texte pour rester cohérents avec localStorage.
 function chargerFavoris() {
     try {
         const favoris = JSON.parse(localStorage.getItem(`favoris-conversations-${monId}`) || '[]');
@@ -178,6 +180,8 @@ async function chargerConversations() {
 
     listeConversations.innerHTML = '';
 
+    // Les favoris sont affichés en premier, puis les autres conversations gardent
+    // leur ordre initial basé sur l'identifiant.
     conversations
         .sort((a, b) => {
             const aEstFavorite = favorisConversations.has(String(a.id));
@@ -244,6 +248,7 @@ function afficherEtatFavori(bouton, conversationId) {
 }
 
 
+// Met à jour le favori localement puis réordonne les lignes sans recharger la page.
 function basculerFavori(conversationId, pseudo, bouton, ligne) {
     const cle = String(conversationId);
     if (favorisConversations.has(cle)) {
