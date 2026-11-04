@@ -104,8 +104,39 @@ body {
 	cursor: pointer;
 }
 
+.sidebar__conversation-ligne {
+	display: flex;
+	align-items: stretch;
+	border-bottom: 1px solid #eee;
+}
+
+.sidebar__conversation-ligne .sidebar__conversation {
+	flex: 1;
+	border-bottom: 0;
+}
+
 .sidebar__conversation:hover {
 	background: #f5f5f5;
+}
+
+.sidebar__supprimer {
+	flex-shrink: 0;
+	padding: 8px;
+	border: 0;
+	background: none;
+	color: #c62828;
+	font: inherit;
+	font-size: 11px;
+	cursor: pointer;
+}
+
+.sidebar__supprimer:hover {
+	background: #fdecea;
+}
+
+.sidebar__supprimer:disabled {
+	opacity: 0.6;
+	cursor: default;
 }
 
 .sidebar__conversation.active {
