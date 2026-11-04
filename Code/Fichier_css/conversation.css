@@ -105,6 +105,7 @@ body {
 }
 
 .sidebar__conversation-ligne {
+	/* Regroupe le bouton d'ouverture et le bouton de suppression sur une même ligne. */
 	display: flex;
 	align-items: stretch;
 	border-bottom: 1px solid #eee;
@@ -120,6 +121,7 @@ body {
 }
 
 .sidebar__supprimer {
+	/* Cette action reste compacte pour laisser la plus grande place au nom. */
 	flex-shrink: 0;
 	padding: 8px;
 	border: 0;

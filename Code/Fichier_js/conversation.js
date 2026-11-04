@@ -157,6 +157,7 @@ async function chargerConversations() {
         const autre = membres.find(m => m.id === autreId(conversation));
         const contact = autre || { id: autreId(conversation), pseudo: 'Inconnu', photo_url: null };
 
+        // Chaque ligne contient l'ouverture de la conversation et son action de suppression.
         const li = document.createElement('li');
         li.className = 'sidebar__conversation-ligne';
         const bouton = document.createElement('button');
@@ -175,6 +176,7 @@ async function chargerConversations() {
         bouton.appendChild(nom);
         bouton.addEventListener('click', () => ouvrirConversation(conversation.id, contact, bouton));
 
+        // Le bouton est séparé pour éviter d'ouvrir la conversation en le supprimant.
         const boutonSupprimer = document.createElement('button');
         boutonSupprimer.type = 'button';
         boutonSupprimer.className = 'sidebar__supprimer';
@@ -196,6 +198,7 @@ async function supprimerConversation(conversationId, pseudo, bouton) {
 
     bouton.disabled = true;
 
+    // Les messages sont supprimés avant la conversation pour respecter la relation entre les tables.
     const { error: erreurMessages } = await client
         .from('message')
         .delete()
@@ -220,6 +223,7 @@ async function supprimerConversation(conversationId, pseudo, bouton) {
         return;
     }
 
+    // Si la conversation affichée vient d'être supprimée, on remet l'interface à son état initial.
     if (conversationElement.dataset.conversationId === String(conversationId)) {
         fermerPicker();
         retirerImage();
