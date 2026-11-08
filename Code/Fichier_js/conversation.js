@@ -62,20 +62,21 @@ function enregistrerFavoris() {
 // Filtre en temps réel les conversations déjà chargées, sans nouvelle requête Supabase.
 function filtrerConversations() {
     const recherche = rechercheConversations.value.trim().toLocaleLowerCase();
-    const boutons = listeConversations.querySelectorAll('.sidebar__conversation');
+    const lignes = listeConversations.querySelectorAll('.sidebar__conversation-ligne');
     let nombreVisible = 0;
 
-    boutons.forEach(bouton => {
+    lignes.forEach(ligne => {
+        const bouton = ligne.querySelector('.sidebar__conversation');
         const nom = bouton.querySelector('.sidebar__conversation-nom').textContent.toLocaleLowerCase();
         const visible = !recherche || nom.includes(recherche);
-        bouton.closest('li').hidden = !visible;
+        ligne.hidden = !visible;
         if (visible) nombreVisible++;
     });
 
     const ancienMessage = listeConversations.querySelector('.sidebar__recherche-vide');
     if (ancienMessage) ancienMessage.remove();
 
-    if (boutons.length > 0 && nombreVisible === 0) {
+    if (lignes.length > 0 && nombreVisible === 0) {
         const message = document.createElement('li');
         message.className = 'sidebar__recherche-vide';
         message.textContent = 'Aucune conversation trouvée';

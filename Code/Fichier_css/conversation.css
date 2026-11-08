@@ -111,6 +111,10 @@ body {
 	border-bottom: 1px solid #eee;
 }
 
+.sidebar__conversation-ligne[hidden] {
+	display: none;
+}
+
 .sidebar__conversation-ligne .sidebar__conversation {
 	flex: 1;
 	border-bottom: 0;
