@@ -72,6 +72,119 @@ function enregistrerFavoris() {
     }
 }
 
+function demarrerAnimationNotifications() {
+    const notifications = [...document.querySelectorAll('.notification-decoration')];
+    const zone = document.querySelector('.notifications-decoration');
+    if (!zone || notifications.length === 0 || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    const bulles = notifications.map((element, index) => ({
+        element,
+        x: 0,
+        y: 0,
+        vx: index % 2 === 0 ? 24 + index : -24 - index,
+        vy: index % 3 === 0 ? 16 : -18,
+        rayon: 0,
+        cote: index < notifications.length / 2 ? 'gauche' : 'droite'
+    }));
+
+    let limites = null;
+    let dernierTemps = performance.now();
+
+    function actualiserLimites() {
+        const application = document.querySelector('.app').getBoundingClientRect();
+        limites = {
+            gauche: { minX: 8, maxX: Math.max(8, application.left - 8) },
+            droite: { minX: application.right + 8, maxX: window.innerWidth - 8 }
+        };
+
+        bulles.forEach(bulle => {
+            const largeur = bulle.element.offsetWidth;
+            const hauteur = bulle.element.offsetHeight;
+            bulle.rayon = Math.max(largeur, hauteur) / 2;
+            const bord = limites[bulle.cote];
+            bulle.x = Math.min(Math.max(bulle.x, bord.minX + bulle.rayon), bord.maxX - bulle.rayon);
+            bulle.y = Math.min(Math.max(bulle.y, bulle.rayon), window.innerHeight - bulle.rayon);
+        });
+    }
+
+    notifications.forEach((element, index) => {
+        element.style.animation = 'none';
+        const colonne = index % 2;
+        const ligne = Math.floor(index / 2);
+        element.style.left = `${colonne ? 0 : 0}px`;
+        element.style.top = `${80 + ligne * 90}px`;
+    });
+
+    actualiserLimites();
+    bulles.forEach((bulle, index) => {
+        const bord = limites[bulle.cote];
+        bulle.x = bord.minX + bulle.rayon + ((index * 47) % Math.max(1, bord.maxX - bord.minX - bulle.rayon * 2));
+        bulle.y = 40 + ((index * 113) % Math.max(1, window.innerHeight - 80));
+    });
+
+    function rebondirEntre(bulleA, bulleB) {
+        if (bulleA.cote !== bulleB.cote) return;
+        const dx = bulleB.x - bulleA.x;
+        const dy = bulleB.y - bulleA.y;
+        const distance = Math.hypot(dx, dy);
+        const distanceMinimale = bulleA.rayon + bulleB.rayon + 4;
+        if (distance === 0 || distance >= distanceMinimale) return;
+
+        const normaleX = dx / distance;
+        const normaleY = dy / distance;
+        const vitesseRelative = (bulleB.vx - bulleA.vx) * normaleX + (bulleB.vy - bulleA.vy) * normaleY;
+        if (vitesseRelative > 0) return;
+
+        bulleA.vx += vitesseRelative * normaleX;
+        bulleA.vy += vitesseRelative * normaleY;
+        bulleB.vx -= vitesseRelative * normaleX;
+        bulleB.vy -= vitesseRelative * normaleY;
+
+        const correction = (distanceMinimale - distance) / 2;
+        bulleA.x -= normaleX * correction;
+        bulleA.y -= normaleY * correction;
+        bulleB.x += normaleX * correction;
+        bulleB.y += normaleY * correction;
+    }
+
+    function animer(temps) {
+        const delta = Math.min((temps - dernierTemps) / 1000, 0.04);
+        dernierTemps = temps;
+
+        bulles.forEach(bulle => {
+            const bord = limites[bulle.cote];
+            bulle.x += bulle.vx * delta;
+            bulle.y += bulle.vy * delta;
+
+            if (bulle.x - bulle.rayon <= bord.minX || bulle.x + bulle.rayon >= bord.maxX) {
+                bulle.vx *= -1;
+                bulle.x = Math.min(Math.max(bulle.x, bord.minX + bulle.rayon), bord.maxX - bulle.rayon);
+            }
+            if (bulle.y - bulle.rayon <= 0 || bulle.y + bulle.rayon >= window.innerHeight) {
+                bulle.vy *= -1;
+                bulle.y = Math.min(Math.max(bulle.y, bulle.rayon), window.innerHeight - bulle.rayon);
+            }
+        });
+
+        for (let index = 0; index < bulles.length; index++) {
+            for (let autreIndex = index + 1; autreIndex < bulles.length; autreIndex++) {
+                rebondirEntre(bulles[index], bulles[autreIndex]);
+            }
+        }
+
+        bulles.forEach(bulle => {
+            bulle.element.style.left = `${bulle.x - bulle.element.offsetWidth / 2}px`;
+            bulle.element.style.top = `${bulle.y - bulle.element.offsetHeight / 2}px`;
+            bulle.element.style.transform = `rotate(${Math.max(-12, Math.min(12, bulle.vx / 4))}deg)`;
+        });
+
+        requestAnimationFrame(animer);
+    }
+
+    window.addEventListener('resize', actualiserLimites);
+    requestAnimationFrame(animer);
+}
+
 // Filtre en temps réel les conversations déjà chargées, sans nouvelle requête Supabase.
 function filtrerConversations() {
     const recherche = rechercheConversations.value.trim().toLocaleLowerCase();
@@ -924,4 +1037,5 @@ messageForm.addEventListener('submit', async (event) => {
     messagesElement.scrollTop = messagesElement.scrollHeight;
 });
 
+demarrerAnimationNotifications();
 demarrer();
