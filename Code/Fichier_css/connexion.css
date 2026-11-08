@@ -8,30 +8,62 @@ body.connexion-page {
 	align-items: center;
 	justify-content: center;
 	margin: 0;
+	padding: 24px;
+	background-color: #d9e3d8;
+	background-image:
+		linear-gradient(rgb(243 240 235 / 52%), rgb(243 240 235 / 52%)),
+		url("../Fichier_images/connexion-fond.svg");
+	background-position: center;
+	background-size: cover;
+	color: #302f2c;
 	font-family: Arial, sans-serif;
-	background: #f2f2f2;
+}
+
+.auth-shell {
+	width: min(100%, 430px);
 }
 
 .connexion-page #boite {
-	width: min(100% - 30px, 460px);
-	padding: 30px;
-	border: 1px solid #ddd;
-	border-radius: 8px;
-	background: white;
-	box-shadow: 0 4px 12px rgb(0 0 0 / 8%);
+	padding: 42px 44px 38px;
+	border: 1px solid #e3ded6;
+	border-radius: 6px;
+	background: rgb(255 253 250 / 96%);
+	box-shadow: 0 14px 34px rgb(65 57 47 / 17%);
 }
 
-.connexion-page h2 {
-	margin: 0 0 28px;
-	color: #333;
-	font-size: 22px;
-	text-align: center;
+.brand-name {
+	margin-bottom: 36px;
+	color: #47745f;
+	font-size: 15px;
+	font-weight: 700;
+	letter-spacing: 0.4px;
+}
+
+.connexion-page form {
+	width: 100%;
+}
+
+.connexion-page h1 {
+	margin: 0;
+	color: #292a27;
+	font-size: 28px;
+	font-weight: 700;
+	line-height: 1.2;
+}
+
+.form-intro {
+	margin: 10px 0 30px;
+	color: #77746e;
+	font-size: 14px;
+	line-height: 1.5;
 }
 
 .connexion-page label {
 	display: block;
-	color: #333;
-	font-size: 15px;
+	margin-bottom: 7px;
+	color: #4a4944;
+	font-size: 13px;
+	font-weight: 700;
 }
 
 .connexion-page input[type="text"],
@@ -39,68 +71,109 @@ body.connexion-page {
 .connexion-page input[type="password"] {
 	display: block;
 	width: 100%;
-	margin: 7px 0 18px;
-	padding: 10px;
-	border: 1px solid #ccc;
-	border-radius: 5px;
+	margin: 0 0 19px;
+	padding: 12px 13px;
+	border: 1px solid #d5d0c8;
+	border-radius: 4px;
+	background: #fff;
+	color: #302f2c;
+	font: inherit;
+	transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.connexion-page input::placeholder {
+	color: #aaa59d;
 }
 
 .connexion-page input:focus {
-	border-color: #2879a8;
-	outline: 2px solid rgb(40 121 168 / 20%);
+	border-color: #47745f;
+	outline: 0;
+	box-shadow: 0 0 0 3px rgb(71 116 95 / 13%);
 }
 
 .connexion-page .remember-option {
 	display: flex;
 	align-items: center;
 	gap: 8px;
-	margin: 2px 0 14px;
+	margin: 0 0 14px;
 }
 
 .connexion-page .remember-option input[type="checkbox"] {
-	width: auto;
+	width: 15px;
+	height: 15px;
 	margin: 0;
-	accent-color: #2879a8;
+	accent-color: #47745f;
 }
 
 .connexion-page .remember-option label {
-	color: #555;
-	font-size: 14px;
+	margin: 0;
+	color: #77746e;
+	font-size: 13px;
+	font-weight: 400;
 }
 
 .connexion-page .forgot-password {
-	display: block;
-	margin-bottom: 18px;
-	color: #2879a8;
-	font-size: 14px;
+	display: inline-block;
+	margin-bottom: 24px;
+	color: #47745f;
+	font-size: 13px;
+	text-decoration: none;
+}
+
+.connexion-page .forgot-password:hover,
+.connexion-page .create-account:hover,
+.connexion-page .back-to-login:hover {
+	text-decoration: underline;
 }
 
 .connexion-page button {
 	width: 100%;
 	margin: 0;
-	padding: 10px 15px;
+	padding: 13px 15px;
 	border: 0;
-	border-radius: 5px;
-	background: #2879a8;
-	color: white;
+	border-radius: 4px;
+	background: #47745f;
+	color: #fff;
 	cursor: pointer;
+	font: inherit;
+	font-weight: 700;
+	transition: background 150ms ease;
 }
 
 .connexion-page button:hover {
-	background: #216487;
+	background: #3b634f;
+}
+
+.connexion-page button:focus-visible,
+.connexion-page a:focus-visible,
+.connexion-page input:focus-visible {
+	outline: 3px solid rgb(71 116 95 / 28%);
+	outline-offset: 2px;
+}
+
+.connexion-page button:disabled {
+	cursor: wait;
+	opacity: 0.7;
 }
 
 .connexion-page .create-account,
 .connexion-page .back-to-login {
 	display: block;
-	margin-top: 16px;
-	color: #2879a8;
-	font-size: 14px;
+	margin-top: 21px;
+	color: #47745f;
+	font-size: 13px;
 	text-align: center;
 	text-decoration: none;
 }
 
-.connexion-page .create-account:hover,
-.connexion-page .back-to-login:hover {
-	text-decoration: underline;
+@media (max-width: 480px) {
+	body.connexion-page {
+		padding: 16px;
+		align-items: flex-start;
+		padding-top: 8vh;
+	}
+
+	.connexion-page #boite {
+		padding: 34px 25px 30px;
+	}
 }

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" role="img" aria-label="Illustration abstraite de formes végétales">
+  <rect width="1600" height="1000" fill="#d9e3d8"/>
+  <path d="M0 755c180-135 337-124 487-53 169 80 273 71 424-18 159-93 321-115 689 69v247H0z" fill="#b9cfbd"/>
+  <path d="M0 0h520c-34 154-7 244 112 357 87 83 92 212 17 314-88 118-276 95-405 19C137 637 79 583 0 563z" fill="#c6d8c8"/>
+  <path d="M1600 0h-342c-51 167-4 270 119 332 99 50 169 120 223 239z" fill="#aec8b5"/>
+  <g fill="none" stroke="#719a7c" stroke-linecap="round" stroke-width="8" opacity=".62">
+    <path d="M220 874c35-210 62-331 153-474"/>
+    <path d="M220 706c-64-47-107-55-168-35"/>
+    <path d="M249 613c74-49 124-55 188-28"/>
+    <path d="M1376 837c-42-220-71-326-156-462"/>
+    <path d="M1348 674c62-55 102-70 171-57"/>
+    <path d="M1318 589c-67-49-120-54-178-27"/>
+  </g>
+  <g fill="#f3f0e9" opacity=".72">
+    <circle cx="1060" cy="170" r="52"/>
+    <circle cx="1160" cy="244" r="25"/>
+    <circle cx="1320" cy="146" r="18"/>
+    <circle cx="460" cy="190" r="22"/>
+  </g>
+</svg>

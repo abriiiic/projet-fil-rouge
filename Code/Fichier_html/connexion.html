@@ -3,13 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="../Fichier_images/favicon-messagerie.svg">
     <link rel="stylesheet" href="../Fichier_css/connexion.css">
-    <title>Connexion à la messagerie</title>
+    <title>Accueil de la messagerie</title>
 </head>
 <body class="connexion-page">
-<div id="boite">
-        <form id="login-form">
-                <h2>Connexion à la messagerie</h2>
+    <main class="auth-shell">
+        <div id="boite">
+            <form id="login-form">
+                <h1>Content de vous revoir</h1>
+                <p class="form-intro">Connectez-vous pour retrouver vos conversations.</p>
                 <label for="email">Adresse mail :</label>
                 <input type="email" id="email" name="email" placeholder="Entrez votre adresse mail">
 
@@ -26,8 +29,8 @@
                 <button type="submit">Se connecter</button>
                 <a class="create-account" href="inscription.html">Créer un compte</a>
             </form>
-
-</div>
+        </div>
+    </main>
 
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
