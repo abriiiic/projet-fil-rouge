@@ -82,6 +82,23 @@ body {
 	outline: 2px solid rgba(40, 121, 168, 0.2);
 }
 
+.sidebar__nouvelle {
+	width: 100%;
+	margin-top: 8px;
+	padding: 8px 10px;
+	border: 0;
+	border-radius: 5px;
+	background: #2879a8;
+	color: white;
+	font: inherit;
+	font-size: 14px;
+	cursor: pointer;
+}
+
+.sidebar__nouvelle:hover {
+	background: #1f6189;
+}
+
 .sidebar__liste {
 	flex: 1;
 	margin: 0;
@@ -604,6 +621,106 @@ body {
 .profil-modal__bio--vide {
 	color: #999;
 	font-style: italic;
+}
+
+.nouvelle-modal {
+	width: min(400px, calc(100% - 32px));
+	padding: 20px;
+	border: 0;
+	border-radius: 12px;
+	box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.nouvelle-modal::backdrop {
+	background: rgba(0, 0, 0, 0.5);
+}
+
+.nouvelle-modal__haut {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 15px;
+}
+
+.nouvelle-modal__haut h2 {
+	margin: 0;
+	font-size: 18px;
+}
+
+.nouvelle-modal__fermer {
+	width: 32px;
+	height: 32px;
+	padding: 0;
+	border: 0;
+	border-radius: 50%;
+	background: #eee;
+	color: #333;
+	font-size: 20px;
+	line-height: 32px;
+	cursor: pointer;
+}
+
+.nouvelle-modal__fermer:hover {
+	background: #ddd;
+}
+
+.nouvelle-modal__label {
+	display: block;
+	margin-bottom: 5px;
+	color: #555;
+	font-size: 12px;
+}
+
+.nouvelle-modal__champ {
+	width: 100%;
+	padding: 8px 10px;
+	border: 1px solid #ccc;
+	border-radius: 5px;
+	font: inherit;
+}
+
+.nouvelle-modal__champ:focus {
+	border-color: #2879a8;
+	outline: 2px solid rgba(40, 121, 168, 0.2);
+}
+
+.nouvelle-modal__resultats {
+	max-height: 300px;
+	margin: 10px 0 0;
+	padding: 0;
+	list-style: none;
+	overflow-y: auto;
+}
+
+.nouvelle-modal__membre {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	width: 100%;
+	padding: 10px;
+	border: 0;
+	border-radius: 8px;
+	background: none;
+	font: inherit;
+	font-size: 15px;
+	text-align: left;
+	overflow-wrap: anywhere;
+	cursor: pointer;
+}
+
+.nouvelle-modal__membre:hover {
+	background: #f2f2f2;
+}
+
+.nouvelle-modal__membre:disabled {
+	opacity: 0.6;
+	cursor: default;
+}
+
+.nouvelle-modal__info {
+	padding: 10px;
+	color: #777;
+	font-size: 14px;
 }
 
 @media (max-width: 480px) {

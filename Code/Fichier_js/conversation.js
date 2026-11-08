@@ -27,6 +27,13 @@ const profilPseudo = document.getElementById('profil-pseudo');
 const profilBio = document.getElementById('profil-bio');
 const profilFermer = document.getElementById('profil-fermer');
 const boutonDeconnexion = document.getElementById('deconnexion');
+const boutonNouvelle = document.getElementById('nouvelle-conversation');
+const nouvelleDialog = document.getElementById('nouvelle-dialog');
+const nouvelleFermer = document.getElementById('nouvelle-fermer');
+const nouvelleRecherche = document.getElementById('nouvelle-recherche');
+const nouvelleResultats = document.getElementById('nouvelle-resultats');
+
+let minuteurRecherche = null;
 
 let contactActuel = null;
 const messagesElement = document.getElementById('messages');
@@ -129,6 +136,7 @@ async function demarrer() {
     favorisConversations = chargerFavoris();
     await chargerMonPseudo();
     await chargerConversations();
+    ecouterNouvellesConversations();
 }
 
 
@@ -205,6 +213,11 @@ async function chargerConversations() {
         const bouton = document.createElement('button');
         bouton.type = 'button';
         bouton.className = 'sidebar__conversation';
+        bouton.dataset.conversationId = conversation.id;
+        if (conversationElement.dataset.conversationId === String(conversation.id)) {
+            bouton.classList.add('active');
+            bouton.setAttribute('aria-current', 'true');
+        }
 
         const avatar = document.createElement('span');
         avatar.className = 'conversation__avatar';
@@ -243,6 +256,134 @@ async function chargerConversations() {
         });
 
     filtrerConversations();
+}
+
+
+function ecouterNouvellesConversations() {
+    client
+        .channel('conversations-' + monId)
+        .on('postgres_changes', {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'conversation',
+            filter: 'membre2_id=eq.' + monId
+        }, () => chargerConversations())
+        .subscribe();
+}
+
+
+function ouvrirNouvelleConversation() {
+    nouvelleRecherche.value = '';
+    afficherInfoResultats("Tape un pseudo pour trouver quelqu'un.");
+    nouvelleDialog.showModal();
+    nouvelleRecherche.focus();
+}
+
+
+function afficherInfoResultats(texte) {
+    nouvelleResultats.innerHTML = '';
+    const li = document.createElement('li');
+    li.className = 'nouvelle-modal__info';
+    li.textContent = texte;
+    nouvelleResultats.appendChild(li);
+}
+
+
+async function chercherMembres() {
+    const texte = nouvelleRecherche.value.trim();
+
+    if (!texte) {
+        afficherInfoResultats("Tape un pseudo pour trouver quelqu'un.");
+        return;
+    }
+
+    const { data: membres, error } = await client
+        .from('membre')
+        .select('id, pseudo, photo_url')
+        .ilike('pseudo', '%' + texte + '%')
+        .neq('id', monId)
+        .order('pseudo')
+        .limit(10);
+
+    if (nouvelleRecherche.value.trim() !== texte) return;
+
+    if (error) {
+        console.error("Erreur recherche membres :", error.message);
+        afficherInfoResultats("La recherche a échoué.");
+        return;
+    }
+
+    if (membres.length === 0) {
+        afficherInfoResultats("Aucun membre trouvé");
+        return;
+    }
+
+    nouvelleResultats.innerHTML = '';
+
+    membres.forEach(membre => {
+        const li = document.createElement('li');
+        const bouton = document.createElement('button');
+        bouton.type = 'button';
+        bouton.className = 'nouvelle-modal__membre';
+
+        const avatar = document.createElement('span');
+        avatar.className = 'conversation__avatar';
+        afficherAvatar(avatar, membre.pseudo, membre.photo_url);
+
+        const nom = document.createElement('span');
+        nom.textContent = membre.pseudo;
+
+        bouton.appendChild(avatar);
+        bouton.appendChild(nom);
+        bouton.addEventListener('click', () => demarrerConversation(membre, bouton));
+
+        li.appendChild(bouton);
+        nouvelleResultats.appendChild(li);
+    });
+}
+
+
+async function demarrerConversation(membre, bouton) {
+    bouton.disabled = true;
+
+    const { data: existantes, error: erreurExistantes } = await client
+        .from('conversation')
+        .select('id')
+        .or(`and(membre1_id.eq.${monId},membre2_id.eq.${membre.id}),and(membre1_id.eq.${membre.id},membre2_id.eq.${monId})`)
+        .limit(1);
+
+    if (erreurExistantes) {
+        console.error("Erreur conversation existante :", erreurExistantes.message);
+        alert("La conversation n'a pas pu être créée.");
+        bouton.disabled = false;
+        return;
+    }
+
+    let conversationId = existantes.length > 0 ? existantes[0].id : null;
+
+    if (!conversationId) {
+        const { data: nouvelle, error } = await client
+            .from('conversation')
+            .insert({ membre1_id: monId, membre2_id: membre.id })
+            .select('id')
+            .single();
+
+        if (error) {
+            console.error("Erreur création conversation :", error.message);
+            alert("La conversation n'a pas pu être créée.");
+            bouton.disabled = false;
+            return;
+        }
+
+        conversationId = nouvelle.id;
+    }
+
+    nouvelleDialog.close();
+    rechercheConversations.value = '';
+    await chargerConversations();
+
+    const ligne = listeConversations.querySelector(`.sidebar__conversation[data-conversation-id="${conversationId}"]`);
+    if (ligne) ligne.click();
 }
 
 
@@ -705,6 +846,19 @@ photoMessageInput.addEventListener('change', () => {
 
 apercuRetirer.addEventListener('click', retirerImage);
 rechercheConversations.addEventListener('input', filtrerConversations);
+
+boutonNouvelle.addEventListener('click', ouvrirNouvelleConversation);
+
+nouvelleFermer.addEventListener('click', () => nouvelleDialog.close());
+
+nouvelleDialog.addEventListener('click', (event) => {
+    if (event.target === nouvelleDialog) nouvelleDialog.close();
+});
+
+nouvelleRecherche.addEventListener('input', () => {
+    clearTimeout(minuteurRecherche);
+    minuteurRecherche = setTimeout(chercherMembres, 250);
+});
 
 
 messageForm.addEventListener('submit', async (event) => {

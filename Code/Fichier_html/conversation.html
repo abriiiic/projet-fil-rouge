@@ -19,6 +19,7 @@
 			<div class="sidebar__recherche">
 				<label for="recherche-conversations">Rechercher une conversation</label>
 				<input id="recherche-conversations" type="search" placeholder="Rechercher..." autocomplete="off">
+				<button id="nouvelle-conversation" class="sidebar__nouvelle" type="button">+ Nouvelle conversation</button>
 			</div>
 
 			<ul id="liste-conversations" class="sidebar__liste"></ul>
@@ -73,6 +74,18 @@
 		</div>
 
 		<p id="profil-bio" class="profil-modal__bio"></p>
+	</dialog>
+
+	<dialog id="nouvelle-dialog" class="nouvelle-modal" aria-labelledby="nouvelle-titre">
+		<div class="nouvelle-modal__haut">
+			<h2 id="nouvelle-titre">Nouvelle conversation</h2>
+			<button id="nouvelle-fermer" class="nouvelle-modal__fermer" type="button" aria-label="Fermer">&times;</button>
+		</div>
+
+		<label class="nouvelle-modal__label" for="nouvelle-recherche">Pseudo</label>
+		<input id="nouvelle-recherche" class="nouvelle-modal__champ" type="search" placeholder="Rechercher un pseudo..." autocomplete="off">
+
+		<ul id="nouvelle-resultats" class="nouvelle-modal__resultats" aria-live="polite"></ul>
 	</dialog>
 
 	<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
