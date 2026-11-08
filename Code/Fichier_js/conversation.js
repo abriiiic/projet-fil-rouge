@@ -5,6 +5,12 @@ let monId = null;
 const EMOJIS = ['👍', '❤️', '😂', '😮', '😢'];
 const reactionsParMessage = {};
 
+// reaction(...) ramène les réactions de chaque message dans la même requête
+const CHAMPS_MESSAGE = 'id, auteur_id, contenu, image_url, date_envoi, reaction(membre_id, emoji)';
+
+let canalMessages = null;
+let conversationChargee = null;
+
 const monPseudoElement = document.getElementById('mon-pseudo');
 const monAvatarElement = document.getElementById('mon-avatar');
 const listeConversations = document.getElementById('liste-conversations');
@@ -165,6 +171,8 @@ async function ouvrirConversation(conversationId, contact, bouton) {
     // on ne garde pas une photo choisie pour une autre conversation
     retirerImage();
     conversationElement.dataset.conversationId = conversationId;
+    conversationChargee = null;
+    ecouterMessages(conversationId);
     contactActuel = contact;
     contactBouton.disabled = !contact.id;
     contactNameElement.textContent = contact.pseudo;
@@ -173,8 +181,7 @@ async function ouvrirConversation(conversationId, contact, bouton) {
 
     const { data: messages, error } = await client
         .from('message')
-        // reaction(...) ramène les réactions de chaque message dans la même requête
-        .select('id, auteur_id, contenu, image_url, date_envoi, reaction(membre_id, emoji)')
+        .select(CHAMPS_MESSAGE)
         .eq('conversation_id', conversationId)
         .order('id');
 
@@ -191,6 +198,54 @@ async function ouvrirConversation(conversationId, contact, bouton) {
     messagesElement.innerHTML = '';
     messages.forEach(afficherMessage);
     messagesElement.scrollTop = messagesElement.scrollHeight;
+
+    conversationChargee = conversationId;
+    chargerNouveauxMessages(conversationId);
+}
+
+
+function ecouterMessages(conversationId) {
+    if (canalMessages) client.removeChannel(canalMessages);
+
+    canalMessages = client
+        .channel('messages-' + conversationId + '-' + Date.now())
+        .on('postgres_changes', {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'message',
+            filter: 'conversation_id=eq.' + conversationId
+        }, () => chargerNouveauxMessages(conversationId))
+        .subscribe((statut, erreur) => {
+            if (statut === 'SUBSCRIBED') chargerNouveauxMessages(conversationId);
+            if (statut === 'CHANNEL_ERROR' || statut === 'TIMED_OUT') {
+                console.error("Erreur temps réel :", erreur ? erreur.message : statut);
+            }
+        });
+}
+
+
+async function chargerNouveauxMessages(conversationId) {
+    if (conversationChargee !== conversationId) return;
+
+    const dernier = messagesElement.lastElementChild;
+
+    const { data: messages, error } = await client
+        .from('message')
+        .select(CHAMPS_MESSAGE)
+        .eq('conversation_id', conversationId)
+        .gt('id', dernier ? Number(dernier.dataset.id) : 0)
+        .order('id');
+
+    if (error) {
+        console.error("Erreur nouveaux messages :", error.message);
+        return;
+    }
+
+    if (conversationChargee !== conversationId) return;
+
+    const enBas = messagesElement.scrollHeight - messagesElement.scrollTop - messagesElement.clientHeight < 50;
+    messages.forEach(afficherMessage);
+    if (enBas) messagesElement.scrollTop = messagesElement.scrollHeight;
 }
 
 
@@ -523,7 +578,7 @@ messageForm.addEventListener('submit', async (event) => {
             contenu: contenu || null,
             image_url: imageUrl
         })
-        .select('id, auteur_id, contenu, image_url, date_envoi, reaction(membre_id, emoji)')
+        .select(CHAMPS_MESSAGE)
         .single();
 
     boutonEnvoyer.disabled = false;
