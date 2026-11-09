@@ -29,8 +29,7 @@ $RECYCLE.BIN/
 .nfs*
 
 # VS Code / VSCodium
-.vscode/*
-!.vscode/settings.json
+.vscode/
 .history/
 *.vsix
 
